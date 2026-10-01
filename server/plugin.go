@@ -64,7 +64,7 @@ func statusFor(err error) int {
 func (p *Plugin) OnActivate() error {
 	p.store = NewStore(p.API)
 	p.router = p.newRouter()
-	return nil
+	return p.registerCommands()
 }
 
 func (p *Plugin) setService(s *gifService) {

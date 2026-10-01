@@ -43,6 +43,7 @@ func (p *Plugin) newRouter() *mux.Router {
 	api.HandleFunc("/favorites/{kind:gif|sticker}/{id}", p.handleRemoveFavorite).Methods(http.MethodDelete)
 	api.HandleFunc("/recent", p.handleGetRecent).Methods(http.MethodGet)
 	api.HandleFunc("/post", p.handlePost).Methods(http.MethodPost)
+	api.HandleFunc("/actions/{action:send|shuffle|cancel}", p.handleAction).Methods(http.MethodPost)
 
 	return router
 }
