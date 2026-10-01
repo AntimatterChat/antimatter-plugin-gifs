@@ -331,6 +331,89 @@ function StickerTab({k, fusion, locale, onSend, query}: Common & {query: string}
     );
 }
 
+type PanelProps = {
+    kind: Kind;
+    fusion: boolean;
+    channelId: string;
+    rootId?: string;
+
+    // The text of the search box, and its changes.
+    query: string;
+    onQuery: (query: string) => void;
+
+    // Called once the GIF or sticker is posted.
+    onPosted: () => void;
+};
+
+// PickerPanel is the search box and the GIFs or stickers of the picker, below its tabs: in the
+// plugin's own picker, or in a tab of the host's emoji picker.
+export function PickerPanel({kind, fusion, channelId, rootId, query, onQuery, onPosted}: PanelProps) {
+    const intl = useIntl();
+    const k = classNames(fusion);
+    const config = useClientConfig();
+    const locale = useSelector((state: GlobalState) => getCurrentUserLocale(state)) || 'en';
+    const debouncedQuery = useDebounced(query.trim(), 300);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        loadFavorites();
+    }, []);
+
+    const onSend = useCallback((item: Item) => {
+        setError('');
+        client.postItem(item, channelId, rootId, debouncedQuery).then(
+            onPosted,
+            (e: Error) => setError(intl.formatMessage(messages.postFailed, {error: e.message})),
+        );
+    }, [channelId, rootId, debouncedQuery, onPosted, intl]);
+
+    const placeholder = intl.formatMessage(kind === 'gif' ? messages.searchGifs : messages.searchStickers);
+    const common = {k, fusion, locale, onSend};
+
+    return (
+        <>
+            <div className={k('picker-search')}>
+                <label>
+                    <SearchIcon className={fusion ? 'am-ic am-sm' : 'amgifs-ic'}/>
+                    <input
+                        autoFocus={true}
+                        value={query}
+                        placeholder={placeholder}
+                        aria-label={placeholder}
+                        autoComplete='off'
+                        onChange={(e) => onQuery(e.target.value)}
+                    />
+                </label>
+            </div>
+            {error && (
+                <div
+                    className='amgifs-error'
+                    role='alert'
+                >
+                    {error}
+                </div>
+            )}
+            <div className={k('picker-body')}>
+                {!config && <Empty k={k}>{intl.formatMessage(messages.loading)}</Empty>}
+                {config && !config.configured && <Empty k={k}>{intl.formatMessage(messages.notConfigured)}</Empty>}
+                {config?.configured && kind === 'gif' && (
+                    <GifTab
+                        {...common}
+                        query={debouncedQuery}
+                        onQuery={onQuery}
+                    />
+                )}
+                {config?.configured && kind === 'sticker' && (
+                    <StickerTab
+                        {...common}
+                        query={debouncedQuery}
+                    />
+                )}
+            </div>
+        </>
+    );
+}
+
 type Props = {
     request: PickerRequest;
     fusion: boolean;
@@ -345,27 +428,8 @@ export default function Picker({request, fusion, onClose, popRef, style}: Props)
     const intl = useIntl();
     const k = classNames(fusion);
     const config = useClientConfig() || {configured: true, stickers: request.tab === 'sticker'};
-    const loaded = useClientConfig() !== null;
-    const locale = useSelector((state: GlobalState) => getCurrentUserLocale(state)) || 'en';
     const [tab, setTab] = useState<Kind>(request.tab === 'sticker' && config.stickers ? 'sticker' : 'gif');
     const [query, setQuery] = useState(request.query);
-    const debouncedQuery = useDebounced(query.trim(), 300);
-    const [error, setError] = useState('');
-
-    useEffect(() => {
-        loadFavorites();
-    }, []);
-
-    const onSend = useCallback((item: Item) => {
-        setError('');
-        client.postItem(item, request.channelId, request.rootId, debouncedQuery).then(
-            onClose,
-            (e: Error) => setError(intl.formatMessage(messages.postFailed, {error: e.message})),
-        );
-    }, [request.channelId, request.rootId, debouncedQuery, onClose, intl]);
-
-    const placeholder = intl.formatMessage(tab === 'gif' ? messages.searchGifs : messages.searchStickers);
-    const common = {k, fusion, locale, onSend};
 
     return (
         <div
@@ -394,44 +458,15 @@ export default function Picker({request, fusion, onClose, popRef, style}: Props)
                     ))}
                 </div>
             )}
-            <div className={k('picker-search')}>
-                <label>
-                    <SearchIcon className={fusion ? 'am-ic am-sm' : 'amgifs-ic'}/>
-                    <input
-                        autoFocus={true}
-                        value={query}
-                        placeholder={placeholder}
-                        aria-label={placeholder}
-                        autoComplete='off'
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
-                </label>
-            </div>
-            {error && (
-                <div
-                    className='amgifs-error'
-                    role='alert'
-                >
-                    {error}
-                </div>
-            )}
-            <div className={k('picker-body')}>
-                {!loaded && <Empty k={k}>{intl.formatMessage(messages.loading)}</Empty>}
-                {loaded && !config.configured && <Empty k={k}>{intl.formatMessage(messages.notConfigured)}</Empty>}
-                {loaded && config.configured && tab === 'gif' && (
-                    <GifTab
-                        {...common}
-                        query={debouncedQuery}
-                        onQuery={setQuery}
-                    />
-                )}
-                {loaded && config.configured && tab === 'sticker' && (
-                    <StickerTab
-                        {...common}
-                        query={debouncedQuery}
-                    />
-                )}
-            </div>
+            <PickerPanel
+                kind={tab}
+                fusion={fusion}
+                channelId={request.channelId}
+                rootId={request.rootId}
+                query={query}
+                onQuery={setQuery}
+                onPosted={onClose}
+            />
         </div>
     );
 }
