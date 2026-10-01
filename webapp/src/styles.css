@@ -1,0 +1,30 @@
+/*
+ * Copyright (c) 2026-present Antimatter contributors.
+ * See LICENSE.txt for license information.
+ *
+ * The picker and posts use the Fusion UI's own classes (am-*) under Fusion. These are the
+ * amgifs-* classes of the classic UI, after the Fusion UI mockup's picker, in the classic theme's
+ * colors, and the few helpers both share.
+ */
+
+/* Shared */
+.amgifs-fill { display: block; width: 100%; height: 100%; object-fit: cover; }
+.amgifs-contain { display: block; width: 100%; height: 100%; object-fit: contain; }
+.amgifs-attribution { margin-top: 2px; font-size: 11.5px; opacity: 0.64; }
+.amgifs-attribution a { color: inherit; }
+
+/* Classic UI: posts */
+.amgifs-ic { width: 16px; height: 16px; flex: none; }
+.amgifs-gif-badge { position: absolute; top: 6px; left: 6px; padding: 1px 5px; border-radius: 4px; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; }
+.amgifs-gif-star { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; background: rgba(0, 0, 0, 0.55); color: #fff; opacity: 0; transition: opacity 0.12s ease; }
+.amgifs-gif-msg-wrap:hover .amgifs-gif-star, .amgifs-gif-star:focus-visible, .amgifs-gif-star.amgifs-on { opacity: 1; }
+.amgifs-gif-star:hover { background: rgba(0, 0, 0, 0.75); }
+.amgifs-gif-star.amgifs-on { color: #f0b232; }
+.amgifs-gif-star.amgifs-on .amgifs-ic { fill: currentColor; }
+.amgifs-gif-msg-wrap { position: relative; margin-top: 6px; }
+.amgifs-gif-msg-wrap .amgifs-gif-star { top: 6px; }
+.amgifs-gif-msg { position: relative; width: 100%; overflow: hidden; border-radius: 10px; background: rgba(var(--center-channel-color-rgb), 0.08); }
+.amgifs-sticker-msg { width: 128px; height: 128px; margin-top: 4px; }
+
+/* Fusion: the mockup's GIFs hold glyphs; here they hold the media. */
+:is(.am-app, .am-layer) .am-gif-msg > .amgifs-fill { position: absolute; inset: 0; }
