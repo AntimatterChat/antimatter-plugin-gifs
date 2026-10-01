@@ -18,6 +18,7 @@ import {classNames} from '../web_ui';
 import {useDebounced, useLoad, usePagedList} from './hooks';
 import {SearchIcon, StarIcon} from './icons';
 import MediaView from './media_view';
+import {AddButton} from './upload_dialog';
 
 type ClassNames = ReturnType<typeof classNames>;
 
@@ -343,11 +344,14 @@ type PanelProps = {
 
     // Called once the GIF or sticker is posted.
     onPosted: () => void;
+
+    // Closes the picker, e.g. to open the dialog adding a GIF or sticker.
+    onClose: () => void;
 };
 
 // PickerPanel is the search box and the GIFs or stickers of the picker, below its tabs: in the
 // plugin's own picker, or in a tab of the host's emoji picker.
-export function PickerPanel({kind, fusion, channelId, rootId, query, onQuery, onPosted}: PanelProps) {
+export function PickerPanel({kind, fusion, channelId, rootId, query, onQuery, onPosted, onClose}: PanelProps) {
     const intl = useIntl();
     const k = classNames(fusion);
     const config = useClientConfig();
@@ -372,7 +376,7 @@ export function PickerPanel({kind, fusion, channelId, rootId, query, onQuery, on
 
     return (
         <>
-            <div className={k('picker-search')}>
+            <div className={k('picker-search') + ' amgifs-search-row'}>
                 <label>
                     <SearchIcon className={fusion ? 'am-ic am-sm' : 'amgifs-ic'}/>
                     <input
@@ -384,6 +388,13 @@ export function PickerPanel({kind, fusion, channelId, rootId, query, onQuery, on
                         onChange={(e) => onQuery(e.target.value)}
                     />
                 </label>
+                {config?.can_upload && (
+                    <AddButton
+                        request={{kind, channelId, rootId}}
+                        fusion={fusion}
+                        onClose={onClose}
+                    />
+                )}
             </div>
             {error && (
                 <div
@@ -466,6 +477,7 @@ export default function Picker({request, fusion, onClose, popRef, style}: Props)
                 query={query}
                 onQuery={setQuery}
                 onPosted={onClose}
+                onClose={onClose}
             />
         </div>
     );

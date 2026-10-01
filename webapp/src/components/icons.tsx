@@ -46,6 +46,14 @@ export function SearchIcon(props: Props) {
     );
 }
 
+export function PlusIcon(props: Props) {
+    return (
+        <Svg {...props}>
+            <path d='M12 5v14M5 12h14'/>
+        </Svg>
+    );
+}
+
 // A sticker: a square with a peeled corner and a smile.
 export function StickerIcon(props: Props) {
     return (

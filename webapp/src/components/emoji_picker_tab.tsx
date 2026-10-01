@@ -31,6 +31,7 @@ function EmojiPickerTab({kind, channelId, rootId, filter, onFilterChange, onSele
             query={filter}
             onQuery={onFilterChange}
             onPosted={onSelectDone}
+            onClose={onSelectDone}
         />
     );
     return isFusion ? panel : <div className='amgifs-tab'>{panel}</div>;

@@ -46,9 +46,9 @@ export function place(pop: {offsetWidth: number; offsetHeight: number}, rect: DO
     return {left: clamp(left, w, vw), top: clamp(top, h, vh)};
 }
 
-// layerContainer is where the picker renders: Fusion's layer (its popovers' container, whose
-// am-layer class scopes the Fusion styles), else the body.
-function layerContainer(fusion: boolean): HTMLElement {
+// layerContainer is where the picker and dialogs render: Fusion's layer (its popovers' container,
+// whose am-layer class scopes the Fusion styles), else the body.
+export function layerContainer(fusion: boolean): HTMLElement {
     if (!fusion) {
         return document.body;
     }

@@ -10,9 +10,10 @@ import {GifsTab, StickersTab} from './components/emoji_picker_tab';
 import GifPost from './components/gif_post';
 import {GifIcon, StickerIcon} from './components/icons';
 import PickerRoot from './components/picker_root';
+import UploadDialogRoot from './components/upload_dialog';
 import manifest from './manifest';
 import {messages} from './messages';
-import {closePicker, getClientConfig, loadConfig, openPicker, resetFavorites} from './state';
+import {closePicker, closeUpload, getClientConfig, loadConfig, openPicker, resetFavorites} from './state';
 import type {GifsAPI, PluginClass, PluginRegistry, SlashCommandArgs, SlashCommandResult} from './types/host';
 import type {Kind} from './types/gifs';
 
@@ -44,6 +45,7 @@ export default class Plugin implements PluginClass {
 
         registry.registerPostTypeComponent(POST_TYPE, GifPost);
         registry.registerRootComponent(PickerRoot);
+        registry.registerRootComponent(UploadDialogRoot);
         registry.registerSlashCommandWillBePostedHook(openFromCommand);
 
         if (typeof registry.registerEmojiPickerTab === 'function') {
@@ -93,6 +95,7 @@ export default class Plugin implements PluginClass {
 
     public uninitialize() {
         closePicker();
+        closeUpload();
         resetFavorites();
         delete window.antimatterGifs;
     }
