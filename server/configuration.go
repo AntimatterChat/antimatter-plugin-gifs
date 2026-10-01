@@ -4,7 +4,9 @@
 package main
 
 import (
+	"net/url"
 	"reflect"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -17,13 +19,73 @@ import (
 // configuration can change at any time, access to the configuration must be synchronized. The
 // strategy used in this plugin is to guard a pointer to the configuration, and clone the entire
 // struct whenever it changes. You may replace this with whatever strategy you choose.
-type configuration struct{}
+type configuration struct {
+	// ServiceURL is the Tenor API v2 base URL of the GIF service, e.g. http://antimatter-gifs:8080/v2.
+	ServiceURL string
+	APIKey     string
+	// MediaURL is the base URL of the service's media files, which the plugin proxies; by
+	// default the service's origin + /media/.
+	MediaURL string
+	// ContentFilter is Tenor's contentfilter: off, low, medium or high.
+	ContentFilter  string
+	EnableStickers bool
+	// ProxyMedia serves the media through the plugin, so clients don't need to reach the service.
+	ProxyMedia  bool
+	CacheSizeMB int
+}
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
 // your configuration has reference types.
 func (c *configuration) Clone() *configuration {
 	clone := *c
 	return &clone
+}
+
+// serviceBase returns the API base URL without trailing slash, empty when not configured.
+func (c *configuration) serviceBase() string {
+	return strings.TrimRight(strings.TrimSpace(c.ServiceURL), "/")
+}
+
+// mediaBase returns the base URL of the media files, with a trailing slash.
+func (c *configuration) mediaBase() string {
+	if m := strings.TrimSpace(c.MediaURL); m != "" {
+		return strings.TrimRight(m, "/") + "/"
+	}
+	u, err := url.Parse(c.serviceBase())
+	if err != nil || u.Host == "" {
+		return ""
+	}
+	return u.Scheme + "://" + u.Host + "/media/"
+}
+
+func (c *configuration) contentFilter() string {
+	switch c.ContentFilter {
+	case "off", "low", "medium", "high":
+		return c.ContentFilter
+	}
+	return "medium"
+}
+
+func (c *configuration) cacheBytes() int64 {
+	mb := c.CacheSizeMB
+	if mb <= 0 {
+		mb = 64
+	}
+	return int64(mb) << 20
+}
+
+// IsValid checks the configuration.
+func (c *configuration) IsValid() error {
+	for name, value := range map[string]string{"GIF service URL": c.serviceBase(), "Media URL": strings.TrimSpace(c.MediaURL)} {
+		if value == "" {
+			continue
+		}
+		u, err := url.Parse(value)
+		if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			return errors.Errorf("%s must be an http or https URL", name)
+		}
+	}
+	return nil
 }
 
 // getConfiguration retrieves the active configuration under lock, making it safe to use
@@ -75,8 +137,12 @@ func (p *Plugin) OnConfigurationChange() error {
 	if err := p.API.LoadPluginConfiguration(configuration); err != nil {
 		return errors.Wrap(err, "failed to load plugin configuration")
 	}
+	if err := configuration.IsValid(); err != nil {
+		return errors.Wrap(err, "invalid plugin configuration")
+	}
 
 	p.setConfiguration(configuration)
+	p.setService(newGIFService(configuration, p.client()))
 
 	return nil
 }

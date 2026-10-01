@@ -18,5 +18,81 @@
     },
     "webapp": {
         "bundle_path": "webapp/dist/main.js"
+    },
+    "settings_schema": {
+        "header": "GIFs and stickers come from a GIF service with the Tenor API v2: the self-hosted [antimatter-gifs](https://github.com/antimatterchat/antimatter-gifs) service, or Tenor itself. Only the Antimatter server talks to the service: it proxies the searches and, by default, the media files.",
+        "footer": "",
+        "settings": [
+            {
+                "key": "ServiceURL",
+                "display_name": "GIF service URL",
+                "type": "text",
+                "default": "",
+                "placeholder": "http://antimatter-gifs:8080/v2",
+                "help_text": "The base URL of the Tenor API v2 of the GIF service, e.g. http://antimatter-gifs:8080/v2 for antimatter-gifs or https://tenor.googleapis.com/v2 for Tenor. GIFs are off while it is empty."
+            },
+            {
+                "key": "APIKey",
+                "display_name": "API key",
+                "type": "text",
+                "secret": true,
+                "default": "",
+                "help_text": "The API key of the GIF service (one of AM_GIFS_API_KEYS for antimatter-gifs). It stays on the server."
+            },
+            {
+                "key": "EnableStickers",
+                "display_name": "Enable stickers",
+                "type": "bool",
+                "default": true,
+                "help_text": "When true, users can also post stickers (the service's searchfilter=sticker)."
+            },
+            {
+                "key": "ContentFilter",
+                "display_name": "Content filter",
+                "type": "dropdown",
+                "default": "medium",
+                "help_text": "The content rating of the GIFs and stickers users can find.",
+                "options": [
+                    {
+                        "display_name": "High: G only",
+                        "value": "high"
+                    },
+                    {
+                        "display_name": "Medium: G and PG",
+                        "value": "medium"
+                    },
+                    {
+                        "display_name": "Low: G, PG and PG-13",
+                        "value": "low"
+                    },
+                    {
+                        "display_name": "Off: everything",
+                        "value": "off"
+                    }
+                ]
+            },
+            {
+                "key": "ProxyMedia",
+                "display_name": "Serve the media through Antimatter",
+                "type": "bool",
+                "default": true,
+                "help_text": "When true, the GIF and sticker files are served by the Antimatter server, so users never connect to the GIF service and it doesn't have to be reachable from their devices. When false, their browsers load the files from the service."
+            },
+            {
+                "key": "MediaURL",
+                "display_name": "Media URL",
+                "type": "text",
+                "default": "",
+                "placeholder": "http://antimatter-gifs:8080/media/",
+                "help_text": "The base URL of the media files the server proxies, when the service doesn't serve them itself (e.g. a CDN, or https://media.tenor.com/ for Tenor). By default, the service's address followed by /media/."
+            },
+            {
+                "key": "CacheSizeMB",
+                "display_name": "Cache size (MB)",
+                "type": "number",
+                "default": 64,
+                "help_text": "The memory used to cache the service's answers and the media files of each Antimatter server."
+            }
+        ]
     }
 }
