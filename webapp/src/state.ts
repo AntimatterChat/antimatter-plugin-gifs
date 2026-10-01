@@ -4,7 +4,7 @@
 import {useSyncExternalStore} from 'react';
 
 import * as client from './client';
-import type {ClientConfig, Item} from './types/gifs';
+import type {ClientConfig, Item, Kind} from './types/gifs';
 
 // A tiny observable value, shared by the picker, the posts and the plugin's registrations.
 class Observable<T> {
@@ -32,6 +32,32 @@ class Observable<T> {
 
 function useObservable<T>(o: Observable<T>): T {
     return useSyncExternalStore(o.subscribe, o.get);
+}
+
+// The picker: where it posts and what it shows first.
+export type PickerRequest = {
+    channelId: string;
+    rootId?: string;
+    tab: Kind;
+    query: string;
+};
+
+const picker = new Observable<PickerRequest | null>(null);
+
+export function openPicker(request: {channelId: string; rootId?: string; tab?: Kind; query?: string}) {
+    picker.set({channelId: request.channelId, rootId: request.rootId, tab: request.tab || 'gif', query: request.query || ''});
+}
+
+export function closePicker() {
+    picker.set(null);
+}
+
+export function usePicker() {
+    return useObservable(picker);
+}
+
+export function getPicker() {
+    return picker.get();
 }
 
 // The plugin configuration the clients see.

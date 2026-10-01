@@ -4,9 +4,10 @@
 import {Client4} from 'mattermost-redux/client';
 
 import GifPost from './components/gif_post';
+import PickerRoot from './components/picker_root';
 import manifest from './manifest';
-import {loadConfig, resetFavorites} from './state';
-import type {PluginClass, PluginRegistry} from './types/host';
+import {closePicker, loadConfig, openPicker, resetFavorites} from './state';
+import type {GifsAPI, PluginClass, PluginRegistry} from './types/host';
 
 import './styles.css';
 
@@ -21,10 +22,17 @@ export default class Plugin implements PluginClass {
         loadConfig();
 
         registry.registerPostTypeComponent(POST_TYPE, GifPost);
+        registry.registerRootComponent(PickerRoot);
+
+        // Let the host open the picker, e.g. from a tab of its emoji picker.
+        const api: GifsAPI = {openPicker};
+        window.antimatterGifs = api;
     }
 
     public uninitialize() {
+        closePicker();
         resetFavorites();
+        delete window.antimatterGifs;
     }
 }
 

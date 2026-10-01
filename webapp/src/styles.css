@@ -10,21 +10,79 @@
 /* Shared */
 .amgifs-fill { display: block; width: 100%; height: 100%; object-fit: cover; }
 .amgifs-contain { display: block; width: 100%; height: 100%; object-fit: contain; }
+.amgifs-sticker-cell { position: relative; }
+.amgifs-sticker-cell button.amgifs-star-small { top: 2px; right: 2px; width: 24px; height: 24px; }
+.amgifs-sticker-cell:hover button.amgifs-star-small,
+.amgifs-sticker-cell button.amgifs-star-small:focus-visible,
+.amgifs-sticker-cell button.amgifs-star-small[aria-pressed='true'] { opacity: 1; }
+.amgifs-error { margin: 0 10px 8px; padding: 6px 10px; border-radius: 8px; background: rgba(210, 75, 78, 0.12); color: #d24b4e; font-size: 13px; }
 .amgifs-attribution { margin-top: 2px; font-size: 11.5px; opacity: 0.64; }
 .amgifs-attribution a { color: inherit; }
+.amgifs-menu-icon, .amgifs-header-icon { width: 18px; height: 18px; }
 
-/* Classic UI: posts */
+/* Classic UI: picker */
+.amgifs-pop.amgifs-picker {
+    position: fixed;
+    z-index: 1070;
+    display: flex;
+    flex-direction: column;
+    width: 390px;
+    height: 450px;
+    overflow: hidden;
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+    font-size: 14px;
+}
+@media (max-width: 640px) {
+    .amgifs-pop.amgifs-picker { width: calc(100vw - 16px); }
+}
+.amgifs-picker button { font: inherit; }
 .amgifs-ic { width: 16px; height: 16px; flex: none; }
+.amgifs-picker-tabs { display: flex; gap: 4px; padding: 10px 10px 0; }
+.amgifs-picker-tabs button { height: 30px; padding: 0 12px; border: 0; border-radius: 7px; background: none; font-weight: 700; font-size: 13.5px; color: rgba(var(--center-channel-color-rgb), 0.64); }
+.amgifs-picker-tabs button:hover { background: rgba(var(--center-channel-color-rgb), 0.08); color: var(--center-channel-color); }
+.amgifs-picker-tabs button.amgifs-on { background: rgba(var(--center-channel-color-rgb), 0.12); color: var(--center-channel-color); }
+.amgifs-picker-search { flex: none; padding: 10px; }
+.amgifs-picker-search label { display: flex; align-items: center; gap: 8px; height: 34px; margin: 0; padding: 0 10px; border: 1px solid rgba(var(--center-channel-color-rgb), 0.16); border-radius: 8px; color: rgba(var(--center-channel-color-rgb), 0.64); font-weight: normal; }
+.amgifs-picker-search label:focus-within { border-color: var(--button-bg); }
+.amgifs-picker-search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--center-channel-color); font-size: 14px; }
+.amgifs-picker-body { display: flex; flex: 1; min-height: 0; }
+.amgifs-gif-cats { display: flex; flex: none; flex-wrap: wrap; gap: 6px; padding: 0 10px 8px; }
+.amgifs-gif-cats button { display: inline-flex; align-items: center; gap: 3px; height: 26px; padding: 0 10px; border: 1px solid rgba(var(--center-channel-color-rgb), 0.16); border-radius: 13px; background: none; color: rgba(var(--center-channel-color-rgb), 0.8); font-size: 12.5px; font-weight: 600; }
+.amgifs-gif-cats button .amgifs-ic { width: 13px; height: 13px; }
+.amgifs-gif-cats button.amgifs-on { border-color: var(--button-bg); background: rgba(var(--button-bg-rgb), 0.12); color: var(--center-channel-color); }
+.amgifs-gif-cats button.amgifs-fav.amgifs-on .amgifs-ic { color: #f0b232; fill: currentColor; }
+.amgifs-gif-scroll, .amgifs-sticker-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 10px 10px; }
+.amgifs-gif-grid { columns: 2; column-gap: 8px; }
+.amgifs-gif-note { padding: 6px 2px 0; color: rgba(var(--center-channel-color-rgb), 0.48); font-size: 11.5px; text-align: center; }
+.amgifs-gif-cell { position: relative; margin-bottom: 8px; break-inside: avoid; }
+.amgifs-gif-tile { position: relative; display: block; width: 100%; height: var(--amgifs-h, 120px); padding: 0; overflow: hidden; border: 0; border-radius: 10px; background: rgba(var(--center-channel-color-rgb), 0.08); }
+.amgifs-gif-tile:hover { outline: 2px solid var(--button-bg); outline-offset: -2px; }
 .amgifs-gif-badge { position: absolute; top: 6px; left: 6px; padding: 1px 5px; border-radius: 4px; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; }
 .amgifs-gif-star { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; background: rgba(0, 0, 0, 0.55); color: #fff; opacity: 0; transition: opacity 0.12s ease; }
-.amgifs-gif-msg-wrap:hover .amgifs-gif-star, .amgifs-gif-star:focus-visible, .amgifs-gif-star.amgifs-on { opacity: 1; }
+.amgifs-gif-cell:hover .amgifs-gif-star, .amgifs-gif-msg-wrap:hover .amgifs-gif-star, .amgifs-gif-star:focus-visible, .amgifs-gif-star.amgifs-on { opacity: 1; }
 .amgifs-gif-star:hover { background: rgba(0, 0, 0, 0.75); }
 .amgifs-gif-star.amgifs-on { color: #f0b232; }
 .amgifs-gif-star.amgifs-on .amgifs-ic { fill: currentColor; }
+.amgifs-sticker-scroll h5 { margin: 4px 2px 6px; color: rgba(var(--center-channel-color-rgb), 0.64); font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+.amgifs-sticker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+.amgifs-sticker { display: grid; place-items: center; width: 100%; aspect-ratio: 1 / 1; padding: 4px; border: 0; border-radius: 14px; background: none; }
+.amgifs-sticker:hover { background: rgba(var(--center-channel-color-rgb), 0.08); }
+.amgifs-sticker img { transition: transform 0.15s ease; }
+.amgifs-sticker:hover img { transform: scale(1.08) rotate(-4deg); }
+.amgifs-empty { flex: 1; padding: 28px 18px; color: rgba(var(--center-channel-color-rgb), 0.64); font-size: 14px; text-align: center; }
+
+/* Classic UI: posts */
 .amgifs-gif-msg-wrap { position: relative; margin-top: 6px; }
 .amgifs-gif-msg-wrap .amgifs-gif-star { top: 6px; }
 .amgifs-gif-msg { position: relative; width: 100%; overflow: hidden; border-radius: 10px; background: rgba(var(--center-channel-color-rgb), 0.08); }
 .amgifs-sticker-msg { width: 128px; height: 128px; margin-top: 4px; }
 
-/* Fusion: the mockup's GIFs hold glyphs; here they hold the media. */
-:is(.am-app, .am-layer) .am-gif-msg > .amgifs-fill { position: absolute; inset: 0; }
+/* Fusion: the mockup's GIF tiles hold glyphs; here they hold the media. */
+:is(.am-app, .am-layer) .am-gif-tile > .amgifs-fill, :is(.am-app, .am-layer) .am-gif-msg > .amgifs-fill { position: absolute; inset: 0; }
+:is(.am-app, .am-layer) .am-sticker > .amgifs-contain { padding: 4px; }
+:is(.am-app, .am-layer) .am-sticker:hover > .amgifs-contain { transform: scale(1.08) rotate(-4deg); transition: transform 0.15s ease; }
+:is(.am-app, .am-layer) .am-gif-cats button .am-ic { width: 13px; height: 13px; }
