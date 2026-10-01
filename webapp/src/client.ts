@@ -4,7 +4,7 @@
 import {Client4} from 'mattermost-redux/client';
 
 import manifest from './manifest';
-import type {Category, ClientConfig, Item, Kind, Page} from './types/gifs';
+import type {Category, ClientConfig, Item, Kind, Page, Upload} from './types/gifs';
 
 export class ClientError extends Error {
     status: number;
@@ -27,10 +27,14 @@ function apiURL(path: string, params?: Record<string, string | number | undefine
 }
 
 async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
-    const options: {method: string; body?: string} = {method};
-    if (typeof body !== 'undefined') {
+    const options: {method: string; body?: string | FormData} = {method};
+    if (body instanceof FormData) {
+        options.body = body;
+    } else if (typeof body !== 'undefined') {
         options.body = JSON.stringify(body);
     }
+
+    // With FormData, Client4 lets the browser set the multipart type and its boundary.
     const response = await fetch(url, Client4.getOptions(options));
     if (!response.ok) {
         let message = response.statusText;
@@ -83,4 +87,16 @@ export function getRecent() {
 
 export function postItem(item: Item, channelId: string, rootId?: string, query?: string) {
     return request<unknown>('POST', apiURL('/post'), {kind: item.kind, id: item.id, channel_id: channelId, root_id: rootId || '', query: query || ''});
+}
+
+export function upload({kind, file, title, tags, pack}: Upload) {
+    const form = new FormData();
+    form.append('kind', kind);
+    form.append('title', title);
+    form.append('tags', tags);
+    if (pack) {
+        form.append('pack', pack);
+    }
+    form.append('file', file, file.name);
+    return request<Item>('POST', apiURL('/upload'), form);
 }

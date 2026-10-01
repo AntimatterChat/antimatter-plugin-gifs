@@ -39,4 +39,20 @@ export type Category = {
 export type ClientConfig = {
     configured: boolean;
     stickers: boolean;
+
+    // Whether the user can add GIFs and stickers.
+    can_upload?: boolean;
+};
+
+// A GIF or sticker to add to the GIF service.
+export type Upload = {
+    kind: Kind;
+    file: File;
+    title: string;
+
+    // Comma-separated.
+    tags: string;
+
+    // The sticker pack of a sticker.
+    pack?: string;
 };

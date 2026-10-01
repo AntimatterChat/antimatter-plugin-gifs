@@ -60,6 +60,27 @@ export function getPicker() {
     return picker.get();
 }
 
+// The upload dialog: what to add, and where the picker was opened from, to send it there.
+export type UploadRequest = {
+    kind: Kind;
+    channelId?: string;
+    rootId?: string;
+};
+
+const upload = new Observable<UploadRequest | null>(null);
+
+export function openUpload(request: UploadRequest) {
+    upload.set(request);
+}
+
+export function closeUpload() {
+    upload.set(null);
+}
+
+export function useUpload() {
+    return useObservable(upload);
+}
+
 // The plugin configuration the clients see.
 // null until loaded.
 const config = new Observable<ClientConfig | null>(null);
@@ -103,6 +124,14 @@ export function resetFavorites() {
 
 export function isFavorite(list: Item[] | null, item: Item) {
     return Boolean(list?.some((f) => f.id === item.id && f.kind === item.kind));
+}
+
+// addedFavorite shows an item the server added to the favourites, such as an upload.
+export function addedFavorite(item: Item) {
+    const list = favorites.get();
+    if (list && !isFavorite(list, item)) {
+        favorites.set([item, ...list]);
+    }
 }
 
 export async function toggleFavorite(item: Item) {
