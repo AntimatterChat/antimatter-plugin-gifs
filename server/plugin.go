@@ -33,6 +33,7 @@ type Plugin struct {
 	service     *gifService
 
 	httpClient *http.Client
+	store      *Store
 	router     *mux.Router
 }
 
@@ -61,6 +62,7 @@ func statusFor(err error) int {
 
 // OnActivate is invoked when the plugin is activated.
 func (p *Plugin) OnActivate() error {
+	p.store = NewStore(p.API)
 	p.router = p.newRouter()
 	return nil
 }

@@ -210,6 +210,7 @@ func newTestEnv(t *testing.T, change func(c *configuration)) *testEnv {
 	require.NoError(t, cfg.IsValid())
 	p := &Plugin{httpClient: env.service.Client()}
 	p.SetAPI(env.api)
+	p.store = NewStore(env.kv)
 	p.router = p.newRouter()
 	p.setConfiguration(cfg)
 	p.setService(newGIFService(cfg, p.client()))

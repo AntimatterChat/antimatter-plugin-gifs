@@ -38,6 +38,10 @@ func (p *Plugin) newRouter() *mux.Router {
 	api.HandleFunc("/autocomplete", p.handleTerms("autocomplete")).Methods(http.MethodGet)
 	api.HandleFunc("/suggestions", p.handleTerms("search_suggestions")).Methods(http.MethodGet)
 	api.HandleFunc("/trending_terms", p.handleTerms("trending_terms")).Methods(http.MethodGet)
+	api.HandleFunc("/favorites", p.handleGetFavorites).Methods(http.MethodGet)
+	api.HandleFunc("/favorites", p.handleAddFavorite).Methods(http.MethodPost)
+	api.HandleFunc("/favorites/{kind:gif|sticker}/{id}", p.handleRemoveFavorite).Methods(http.MethodDelete)
+	api.HandleFunc("/recent", p.handleGetRecent).Methods(http.MethodGet)
 
 	return router
 }
@@ -169,4 +173,77 @@ func (p *Plugin) handleTerms(endpoint string) http.HandlerFunc {
 		}
 		p.writeJSON(w, terms)
 	}
+}
+
+func (p *Plugin) handleGetFavorites(w http.ResponseWriter, r *http.Request) {
+	items, err := p.store.Favorites(r.Header.Get("Mattermost-User-Id"))
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	p.writeJSON(w, items)
+}
+
+// itemRequest names an item of the GIF service.
+type itemRequest struct {
+	Kind string `json:"kind"`
+	ID   string `json:"id"`
+}
+
+// readJSON decodes a small JSON request body.
+func (p *Plugin) readJSON(r *http.Request, into any) error {
+	if err := json.NewDecoder(http.MaxBytesReader(nil, r.Body, requestBodyMaxSizeBytes)).Decode(into); err != nil {
+		return newAPIError(http.StatusBadRequest, "invalid request body")
+	}
+	return nil
+}
+
+// fetchItem gets an item from the GIF service, so that clients can't make up media URLs.
+func (p *Plugin) fetchItem(r *http.Request, req itemRequest) (*Item, error) {
+	kind, err := p.kindParam(req.Kind)
+	if err != nil {
+		return nil, err
+	}
+	if req.ID == "" || len(req.ID) > 64 || strings.ContainsAny(req.ID, ",/?#") {
+		return nil, newAPIError(http.StatusBadRequest, "invalid id")
+	}
+	return p.getService().Get(r.Context(), kind, req.ID)
+}
+
+func (p *Plugin) handleAddFavorite(w http.ResponseWriter, r *http.Request) {
+	var req itemRequest
+	if err := p.readJSON(r, &req); err != nil {
+		p.writeError(w, err)
+		return
+	}
+	it, err := p.fetchItem(r, req)
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	items, err := p.store.AddFavorite(r.Header.Get("Mattermost-User-Id"), *it)
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	p.writeJSON(w, items)
+}
+
+func (p *Plugin) handleRemoveFavorite(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	items, err := p.store.RemoveFavorite(r.Header.Get("Mattermost-User-Id"), vars["kind"], vars["id"])
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	p.writeJSON(w, items)
+}
+
+func (p *Plugin) handleGetRecent(w http.ResponseWriter, r *http.Request) {
+	items, err := p.store.Recent(r.Header.Get("Mattermost-User-Id"))
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	p.writeJSON(w, items)
 }

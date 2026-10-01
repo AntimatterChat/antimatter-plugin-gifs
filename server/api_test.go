@@ -129,6 +129,34 @@ func TestErrors(t *testing.T) {
 	assert.NotContains(t, rec.Body.String(), "secret")
 }
 
+func TestFavorites(t *testing.T) {
+	env := newTestEnv(t, nil)
+	rec := env.do(t, http.MethodGet, "/api/v1/favorites", testUserID, nil)
+	assert.Equal(t, []Item{}, decode[[]Item](t, rec))
+
+	rec = env.do(t, http.MethodPost, "/api/v1/favorites", testUserID, itemRequest{Kind: kindGIF, ID: "g1"})
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	rec = env.do(t, http.MethodPost, "/api/v1/favorites", testUserID, itemRequest{Kind: kindSticker, ID: "s1"})
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	favs := decode[[]Item](t, rec)
+	require.Len(t, favs, 2)
+	assert.Equal(t, "s1", favs[0].ID)
+	assert.Equal(t, mediaPrefix+"g1/tinygif.gif", favs[1].Preview.URL)
+
+	// Only items of the service, of the right kind.
+	assert.Equal(t, http.StatusNotFound, env.do(t, http.MethodPost, "/api/v1/favorites", testUserID, itemRequest{Kind: kindGIF, ID: "nope"}).Code)
+	assert.Equal(t, http.StatusNotFound, env.do(t, http.MethodPost, "/api/v1/favorites", testUserID, itemRequest{Kind: kindGIF, ID: "s1"}).Code)
+	assert.Equal(t, http.StatusBadRequest, env.do(t, http.MethodPost, "/api/v1/favorites", testUserID, itemRequest{Kind: kindGIF, ID: "a,b"}).Code)
+	assert.Equal(t, http.StatusBadRequest, env.do(t, http.MethodPost, "/api/v1/favorites", testUserID, "not an object").Code)
+
+	rec = env.do(t, http.MethodDelete, "/api/v1/favorites/gif/g1", testUserID, nil)
+	require.Equal(t, http.StatusOK, rec.Code)
+	assert.Len(t, decode[[]Item](t, rec), 1)
+
+	// Another user has their own.
+	assert.Equal(t, []Item{}, decode[[]Item](t, env.do(t, http.MethodGet, "/api/v1/favorites", "otheruserxxxxxxxxxxxxxxxxx", nil)))
+}
+
 func TestMediaProxy(t *testing.T) {
 	env := newTestEnv(t, nil)
 	rec := env.do(t, http.MethodGet, "/media/g1/gif.gif", testUserID, nil)
