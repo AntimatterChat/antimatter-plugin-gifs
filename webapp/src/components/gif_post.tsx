@@ -68,7 +68,7 @@ export default function GifPost({post}: {post: Post}) {
                 className={k('sticker-msg')}
                 role='img'
                 aria-label={label}
-                title={title}
+                title={item.attribution ? `${title} · ${item.attribution}` : title}
             >
                 <MediaView
                     media={item.post}

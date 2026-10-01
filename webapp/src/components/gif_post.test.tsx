@@ -49,9 +49,10 @@ describe('GifPost', () => {
 
     test('uses the Fusion classes under Fusion', () => {
         window.antimatterWebUI = 'fusion';
-        const {container} = renderWithProviders(<GifPost post={makePost(makeSticker('s1'))}/>);
+        const {container} = renderWithProviders(<GifPost post={makePost({...makeSticker('s1'), attribution: 'Antimatter stickers, CC BY 4.0'})}/>);
         const sticker = container.querySelector('.am-sticker-msg') as HTMLElement;
         expect(sticker).toHaveAttribute('aria-label', 'Sticker: It works!');
+        expect(sticker).toHaveAttribute('title', 'It works! · Antimatter stickers, CC BY 4.0');
         expect(sticker.querySelector('img')).toHaveAttribute('src', '/plugins/com.antimatterchat.gifs/media/s1/tinywebp_transparent.webp');
     });
 
