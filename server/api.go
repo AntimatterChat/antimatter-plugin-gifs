@@ -21,10 +21,14 @@ type ClientConfig struct {
 }
 
 // newRouter returns the router of the plugin's REST API, served under
-// /plugins/com.antimatterchat.gifs/api/v1.
+// /plugins/com.antimatterchat.gifs/api/v1, and of its media proxy under /media/.
 func (p *Plugin) newRouter() *mux.Router {
 	router := mux.NewRouter()
+	// The media proxy rejects unclean paths itself rather than redirecting them.
+	router.SkipClean(true)
 	router.Use(p.requireUser)
+
+	router.PathPrefix("/media/").HandlerFunc(p.handleMedia).Methods(http.MethodGet, http.MethodHead)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
 	api.HandleFunc("/config", p.handleGetConfig).Methods(http.MethodGet)

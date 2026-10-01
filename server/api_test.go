@@ -5,6 +5,7 @@ package main
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -94,6 +95,7 @@ func TestErrors(t *testing.T) {
 		status int
 	}{
 		{"/api/v1/search?q=cat", "", http.StatusUnauthorized},
+		{"/media/g1/gif.gif", "", http.StatusUnauthorized},
 		{"/api/v1/search?q=", testUserID, http.StatusBadRequest},
 		{"/api/v1/search?q=" + strings.Repeat("a", 101), testUserID, http.StatusBadRequest},
 		{"/api/v1/search?q=cat&kind=video", testUserID, http.StatusBadRequest},
@@ -125,6 +127,42 @@ func TestErrors(t *testing.T) {
 	rec = env.do(t, http.MethodGet, "/api/v1/featured", testUserID, nil)
 	assert.Equal(t, http.StatusBadGateway, rec.Code)
 	assert.NotContains(t, rec.Body.String(), "secret")
+}
+
+func TestMediaProxy(t *testing.T) {
+	env := newTestEnv(t, nil)
+	rec := env.do(t, http.MethodGet, "/media/g1/gif.gif", testUserID, nil)
+	require.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "MEDIA:g1/gif.gif", rec.Body.String())
+	assert.Equal(t, "image/gif", rec.Header().Get("Content-Type"))
+	assert.Contains(t, rec.Header().Get("Content-Security-Policy"), "sandbox")
+	assert.Equal(t, "nosniff", rec.Header().Get("X-Content-Type-Options"))
+	assert.Contains(t, rec.Header().Get("Cache-Control"), "private")
+
+	// Cached.
+	env.do(t, http.MethodGet, "/media/g1/gif.gif", testUserID, nil)
+	assert.Equal(t, 1, env.service.count("/media/g1/gif.gif"))
+
+	// Range requests, for videos.
+	req := httptest.NewRequest(http.MethodGet, "/media/g1/mp4.mp4", nil)
+	req.Header.Set("Mattermost-User-Id", testUserID)
+	req.Header.Set("Range", "bytes=0-4")
+	rec = httptest.NewRecorder()
+	env.p.ServeHTTP(nil, rec, req)
+	assert.Equal(t, http.StatusPartialContent, rec.Code)
+	assert.Equal(t, "MEDIA", rec.Body.String())
+	assert.Equal(t, "video/mp4", rec.Header().Get("Content-Type"))
+
+	for target, status := range map[string]int{
+		"/media/missing.gif":      http.StatusNotFound,
+		"/media/page.html":        http.StatusUnsupportedMediaType,
+		"/media/g1/../g1/gif.gif": http.StatusNotFound,
+		"/media/g1//gif.gif":      http.StatusNotFound,
+		"/media/":                 http.StatusNotFound,
+	} {
+		rec := env.do(t, http.MethodGet, target, testUserID, nil)
+		assert.Equal(t, status, rec.Code, target)
+	}
 }
 
 func TestConfiguration(t *testing.T) {
