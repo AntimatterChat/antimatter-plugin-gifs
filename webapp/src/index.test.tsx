@@ -19,7 +19,7 @@ beforeAll(() => {
     openFromCommand = index.openFromCommand;
 });
 
-function makeRegistry(withComposerMenu: boolean) {
+function makeRegistry(withComposerMenu: boolean, withEmojiPickerTabs = false) {
     const registry = {
         registerRootComponent: jest.fn(),
         registerPostTypeComponent: jest.fn(),
@@ -29,8 +29,33 @@ function makeRegistry(withComposerMenu: boolean) {
     if (withComposerMenu) {
         registry.registerComposerMenuItem = jest.fn();
     }
+    if (withEmojiPickerTabs) {
+        registry.registerEmojiPickerTab = jest.fn();
+    }
     return registry;
 }
+
+test('registers GIFs and Stickers tabs of the emoji picker instead of the menu item', async () => {
+    const registry = makeRegistry(true, true);
+    new Plugin().initialize(registry as unknown as PluginRegistry, {} as never);
+    expect(registry.registerComposerMenuItem).not.toHaveBeenCalled();
+    expect(registry.registerChannelHeaderButtonAction).not.toHaveBeenCalled();
+
+    const [gifs, stickers] = registry.registerEmojiPickerTab.mock.calls.map(([tab]) => tab);
+    expect(gifs).toMatchObject({id: 'com.antimatterchat.gifs.gifs', order: 0, replacesGifPicker: true});
+    expect(stickers).toMatchObject({id: 'com.antimatterchat.gifs.stickers', order: 1});
+    expect(stickers.replacesGifPicker).toBeFalsy();
+
+    (client.getConfig as jest.Mock).mockResolvedValueOnce({configured: true, stickers: false});
+    await loadConfig();
+    expect(gifs.shouldRender({}, {channelId: 'c'})).toBe(true);
+    expect(stickers.shouldRender({}, {channelId: 'c'})).toBe(false);
+
+    (client.getConfig as jest.Mock).mockResolvedValueOnce({configured: false, stickers: true});
+    await loadConfig();
+    expect(gifs.shouldRender({}, {channelId: 'c'})).toBe(false);
+    expect(stickers.shouldRender({}, {channelId: 'c'})).toBe(false);
+});
 
 test('registers the post type, the picker and the composer menu item', async () => {
     const registry = makeRegistry(true);

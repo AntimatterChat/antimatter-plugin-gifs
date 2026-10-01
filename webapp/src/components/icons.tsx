@@ -55,3 +55,29 @@ export function StickerIcon(props: Props) {
         </Svg>
     );
 }
+
+// GIF in a rounded frame.
+export function GifIcon(props: Props) {
+    return (
+        <Svg {...props}>
+            <rect
+                x='2.5'
+                y='5'
+                width='19'
+                height='14'
+                rx='3'
+            />
+            <text
+                x='12'
+                y='15'
+                textAnchor='middle'
+                fontSize='7.5'
+                fontWeight='800'
+                fill='currentColor'
+                stroke='none'
+            >
+                {'GIF'}
+            </text>
+        </Svg>
+    );
+}

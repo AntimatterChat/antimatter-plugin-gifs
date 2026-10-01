@@ -15,6 +15,23 @@ export type ComposerMenuItemContext = {
     rootId?: string;
 };
 
+// Antimatter: the props of a tab of the host's emoji picker.
+export type EmojiPickerTabProps = {
+    channelId?: string;
+    rootId?: string;
+
+    // The text of the picker's search box, which the tab renders.
+    filter: string;
+    onFilterChange: (filter: string) => void;
+
+    // Closes the picker.
+    onSelectDone: () => void;
+
+    // Whether the Fusion UI renders the tab.
+    isFusion: boolean;
+    insertText?: (text: string) => void;
+};
+
 export type SlashCommandArgs = {
     channel_id: string;
     team_id?: string;
@@ -38,6 +55,18 @@ export interface PluginRegistry {
         fusionIcon?: string;
         action: (ctx: ComposerMenuItemContext) => void;
         shouldRender?: (state: GlobalState, ctx: ComposerMenuItemContext) => boolean;
+    }): string;
+
+    // Antimatter: a tab of the message box's emoji picker.
+    registerEmojiPickerTab?(tab: {
+        id?: string;
+        label: React.ReactNode;
+        icon?: React.ReactNode;
+        fusionIcon?: string;
+        order?: number;
+        component: React.ComponentType<EmojiPickerTabProps>;
+        shouldRender?: (state: GlobalState, ctx: ComposerMenuItemContext) => boolean;
+        replacesGifPicker?: boolean;
     }): string;
 }
 

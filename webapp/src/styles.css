@@ -75,6 +75,13 @@
 .amgifs-sticker:hover img { transform: scale(1.08) rotate(-4deg); }
 .amgifs-empty { flex: 1; padding: 28px 18px; color: rgba(var(--center-channel-color-rgb), 0.64); font-size: 14px; text-align: center; }
 
+/* Classic UI: the GIFs and Stickers tabs of the emoji picker */
+.amgifs-tab { display: flex; flex-direction: column; height: 360px; font-size: 14px; }
+.amgifs-tab button { font: inherit; }
+.amgifs-tab .amgifs-picker-search { padding: 10px 10px 8px; }
+/* The emoji picker's tab styles fill its icons; these are line icons. */
+.emoji-picker svg.amgifs-tab-icon { width: 16px; height: 16px; fill: none !important; }
+
 /* Classic UI: posts */
 .amgifs-gif-msg-wrap { position: relative; margin-top: 6px; }
 .amgifs-gif-msg-wrap .amgifs-gif-star { top: 6px; }

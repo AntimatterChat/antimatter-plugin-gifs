@@ -1,0 +1,55 @@
+// Copyright (c) 2026-present Antimatter contributors.
+// See LICENSE.txt for license information.
+
+import React, {useEffect} from 'react';
+
+import {loadConfig} from '../state';
+import type {Kind} from '../types/gifs';
+import type {EmojiPickerTabProps} from '../types/host';
+
+import {PickerPanel} from './picker';
+
+// EmojiPickerTab is the GIFs or Stickers tab of the host's emoji picker (registerEmojiPickerTab), as
+// in the Fusion UI mockup's picker: the picker's panel, posting to the message box's channel or
+// thread and closing the host's picker once posted. Under Fusion, it renders the Fusion markup in
+// the picker's body; in the classic emoji picker, the plugin's own markup in a tab of fixed height.
+function EmojiPickerTab({kind, channelId, rootId, filter, onFilterChange, onSelectDone, isFusion}: EmojiPickerTabProps & {kind: Kind}) {
+    useEffect(() => {
+        loadConfig();
+    }, []);
+
+    if (!channelId) {
+        return null;
+    }
+
+    const panel = (
+        <PickerPanel
+            kind={kind}
+            fusion={isFusion}
+            channelId={channelId}
+            rootId={rootId}
+            query={filter}
+            onQuery={onFilterChange}
+            onPosted={onSelectDone}
+        />
+    );
+    return isFusion ? panel : <div className='amgifs-tab'>{panel}</div>;
+}
+
+export function GifsTab(props: EmojiPickerTabProps) {
+    return (
+        <EmojiPickerTab
+            {...props}
+            kind='gif'
+        />
+    );
+}
+
+export function StickersTab(props: EmojiPickerTabProps) {
+    return (
+        <EmojiPickerTab
+            {...props}
+            kind='sticker'
+        />
+    );
+}

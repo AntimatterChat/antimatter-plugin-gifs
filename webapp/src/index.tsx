@@ -6,8 +6,9 @@ import {FormattedMessage} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {GifsTab, StickersTab} from './components/emoji_picker_tab';
 import GifPost from './components/gif_post';
-import {StickerIcon} from './components/icons';
+import {GifIcon, StickerIcon} from './components/icons';
 import PickerRoot from './components/picker_root';
 import manifest from './manifest';
 import {messages} from './messages';
@@ -45,8 +46,29 @@ export default class Plugin implements PluginClass {
         registry.registerRootComponent(PickerRoot);
         registry.registerSlashCommandWillBePostedHook(openFromCommand);
 
-        if (typeof registry.registerComposerMenuItem === 'function') {
-            // An item of the message box's "+" menu, under Fusion with its sticker icon.
+        if (typeof registry.registerEmojiPickerTab === 'function') {
+            // GIFs and Stickers tabs of the message box's emoji picker, as in the Fusion UI mockup's
+            // picker (GIFs, Stickers, Emoji). The GIFs tab replaces the host's Giphy picker.
+            registry.registerEmojiPickerTab({
+                id: `${manifest.id}.gifs`,
+                label: <FormattedMessage {...messages.tabGifs}/>,
+                icon: <GifIcon className='amgifs-tab-icon'/>,
+                order: 0,
+                component: GifsTab,
+                shouldRender: () => Boolean(getClientConfig()?.configured),
+                replacesGifPicker: true,
+            });
+            registry.registerEmojiPickerTab({
+                id: `${manifest.id}.stickers`,
+                label: <FormattedMessage {...messages.tabStickers}/>,
+                icon: <StickerIcon className='amgifs-tab-icon'/>,
+                order: 1,
+                component: StickersTab,
+                shouldRender: () => Boolean(getClientConfig()?.configured && getClientConfig()?.stickers),
+            });
+        } else if (typeof registry.registerComposerMenuItem === 'function') {
+            // Hosts without emoji picker tabs: an item of the message box's "+" menu, under Fusion
+            // with its sticker icon.
             registry.registerComposerMenuItem({
                 text: <FormattedMessage {...messages.menuItem}/>,
                 icon: <StickerIcon className='amgifs-menu-icon'/>,
@@ -55,7 +77,7 @@ export default class Plugin implements PluginClass {
                 shouldRender: () => Boolean(getClientConfig()?.configured),
             });
         } else {
-            // Hosts without the "+" menu hook get a channel header button (and the commands).
+            // Hosts without either hook get a channel header button (and the commands).
             registry.registerChannelHeaderButtonAction(
                 <StickerIcon className='amgifs-header-icon'/>,
                 (channel) => openPicker({channelId: channel.id}),
