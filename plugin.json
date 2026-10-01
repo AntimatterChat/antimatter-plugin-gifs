@@ -87,6 +87,31 @@
                 "help_text": "The base URL of the media files the server proxies, when the service doesn't serve them itself (e.g. a CDN, or https://media.tenor.com/ for Tenor). By default, the service's address followed by /media/."
             },
             {
+                "key": "UploadKey",
+                "display_name": "Upload key",
+                "type": "text",
+                "secret": true,
+                "default": "",
+                "help_text": "An upload key of the GIF service (one of AM_GIFS_UPLOAD_KEYS for antimatter-gifs). With it, users can add GIFs and stickers from the picker; uploads are off while it is empty. It stays on the server."
+            },
+            {
+                "key": "WhoCanUpload",
+                "display_name": "Who can add GIFs and stickers",
+                "type": "dropdown",
+                "default": "admins",
+                "help_text": "Who can add GIFs and stickers to the GIF service from the picker, when an upload key is set. They become available to everyone.",
+                "options": [
+                    {
+                        "display_name": "System admins",
+                        "value": "admins"
+                    },
+                    {
+                        "display_name": "Everyone",
+                        "value": "everyone"
+                    }
+                ]
+            },
+            {
                 "key": "CacheSizeMB",
                 "display_name": "Cache size (MB)",
                 "type": "number",

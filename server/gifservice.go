@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -132,6 +133,7 @@ type gifService struct {
 	mediaBase     string
 	proxyMedia    bool
 	stickers      bool
+	uploadKey     string
 	http          *http.Client
 	cache         *cache
 }
@@ -144,6 +146,7 @@ func newGIFService(c *configuration, client *http.Client) *gifService {
 		mediaBase:     c.mediaBase(),
 		proxyMedia:    c.ProxyMedia,
 		stickers:      c.EnableStickers,
+		uploadKey:     strings.TrimSpace(c.UploadKey),
 		http:          client,
 		cache:         newCache(c.cacheBytes()),
 	}
@@ -338,6 +341,110 @@ func (s *gifService) Terms(ctx context.Context, endpoint, query, locale string, 
 		res.Results = []string{}
 	}
 	return res.Results, nil
+}
+
+// canUpload tells whether the service takes uploads from this plugin.
+func (s *gifService) canUpload() bool {
+	return s.configured() && s.uploadKey != ""
+}
+
+// UploadRequest is a GIF or sticker to add to the GIF service (antimatter-gifs' POST /v2/upload).
+type UploadRequest struct {
+	Kind  string
+	Title string
+	// Tags are comma-separated.
+	Tags string
+	// Pack is the sticker pack to add a sticker to.
+	Pack     string
+	FileName string
+	File     io.Reader
+}
+
+// Upload adds a GIF or sticker to the service, which converts it, and returns its item. The
+// service's errors about the file (type, size, conversion) are the client's.
+func (s *gifService) Upload(ctx context.Context, up UploadRequest) (*Item, error) {
+	if !s.canUpload() {
+		return nil, newAPIError(http.StatusForbidden, "the GIF service doesn't take uploads")
+	}
+	body, w := io.Pipe()
+	mw := multipart.NewWriter(w)
+	go func() {
+		err := func() error {
+			for _, f := range [][2]string{{"kind", up.Kind}, {"title", up.Title}, {"tags", up.Tags}, {"pack", up.Pack}} {
+				if f[1] == "" {
+					continue
+				}
+				if err := mw.WriteField(f[0], f[1]); err != nil {
+					return err
+				}
+			}
+			part, err := mw.CreateFormFile("file", up.FileName)
+			if err != nil {
+				return err
+			}
+			if _, err := io.Copy(part, up.File); err != nil {
+				return err
+			}
+			return mw.Close()
+		}()
+		w.CloseWithError(err)
+	}()
+
+	// Converting a video takes a while.
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.base+"/upload", body)
+	if err != nil {
+		body.Close()
+		return nil, err
+	}
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	req.Header.Set("Authorization", "Bearer "+s.uploadKey)
+	// The context bounds the upload, not the client's timeout for API calls.
+	client := *s.http
+	client.Timeout = 0
+	resp, err := client.Do(req)
+	if err != nil {
+		var uerr *url.Error
+		if errors.As(err, &uerr) {
+			err = uerr.Err
+		}
+		return nil, newAPIError(http.StatusBadGateway, "the GIF service can't be reached: "+err.Error())
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
+	if err != nil {
+		return nil, newAPIError(http.StatusBadGateway, "reading the GIF service's response: "+err.Error())
+	}
+	if resp.StatusCode != http.StatusOK {
+		var e struct {
+			Error struct {
+				Message string `json:"message"`
+			} `json:"error"`
+		}
+		msg := resp.Status
+		if json.Unmarshal(data, &e) == nil && e.Error.Message != "" {
+			msg = e.Error.Message
+		}
+		switch resp.StatusCode {
+		case http.StatusBadRequest, http.StatusRequestEntityTooLarge, http.StatusUnprocessableEntity:
+			return nil, newAPIError(resp.StatusCode, msg)
+		}
+		return nil, newAPIError(http.StatusBadGateway, "the GIF service refused the upload: "+msg)
+	}
+	var res struct {
+		Results []tenorResult `json:"results"`
+	}
+	if err := json.Unmarshal(data, &res); err != nil || len(res.Results) == 0 {
+		return nil, newAPIError(http.StatusBadGateway, "invalid response from the GIF service")
+	}
+	it, ok := s.item(res.Results[0], up.Kind)
+	if !ok {
+		return nil, newAPIError(http.StatusBadGateway, "the GIF service returned no usable media")
+	}
+	// Searches and lists show the new item from now on, not after their cache expires.
+	s.cache.removePrefix("api:")
+	return &it, nil
 }
 
 // RegisterShare tells the service an item was shared, for its trending lists.

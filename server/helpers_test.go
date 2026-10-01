@@ -69,6 +69,58 @@ type fakeService struct {
 	mu       sync.Mutex
 	requests []string
 	shares   []string
+	uploads  []fakeUpload
+}
+
+// fakeUpload is a request to POST /v2/upload.
+type fakeUpload struct {
+	auth     string
+	fields   map[string]string
+	file     string
+	fileName string
+}
+
+func (f *fakeService) lastUpload() fakeUpload {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.uploads[len(f.uploads)-1]
+}
+
+// upload answers POST /v2/upload with item up1 of the uploaded kind.
+func (f *fakeService) upload(w http.ResponseWriter, r *http.Request, media func(string, int, int) map[string]any) {
+	up := fakeUpload{auth: r.Header.Get("Authorization"), fields: map[string]string{}}
+	if up.auth != "Bearer up-secret" {
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprint(w, `{"error":{"code":403,"message":"The request is missing a valid upload key.","status":"PERMISSION_DENIED"}}`)
+		return
+	}
+	if err := r.ParseMultipartForm(1 << 20); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	for k, v := range r.MultipartForm.Value {
+		up.fields[k] = v[0]
+	}
+	if file, header, err := r.FormFile("file"); err == nil {
+		data, _ := io.ReadAll(file)
+		up.file, up.fileName = string(data), header.Filename
+	}
+	f.mu.Lock()
+	f.uploads = append(f.uploads, up)
+	f.mu.Unlock()
+	if up.fields["title"] == "unconvertible" {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		fmt.Fprint(w, `{"error":{"code":422,"message":"The file couldn't be converted: is it a valid image or video?","status":"INVALID_ARGUMENT"}}`)
+		return
+	}
+	res := map[string]any{"id": "up1", "title": up.fields["title"], "media_formats": map[string]any{
+		"tinygif": media("up1/tinygif.gif", 220, 124), "gif": media("up1/gif.gif", 498, 280),
+	}}
+	if up.fields["kind"] == "sticker" {
+		res["flags"] = []string{"sticker"}
+		res["media_formats"] = map[string]any{"tinywebp_transparent": media("up1/tinywebp_transparent.webp", 220, 220)}
+	}
+	_ = json.NewEncoder(w).Encode(map[string]any{"results": []any{res}})
 }
 
 func (f *fakeService) count(prefix string) int {
@@ -110,6 +162,10 @@ func newFakeService(t *testing.T) *fakeService {
 			return
 		}
 
+		if r.URL.Path == "/v2/upload" {
+			f.upload(w, r, media)
+			return
+		}
 		if q.Get("key") != "secret" || q.Get("client_key") != clientKey {
 			w.WriteHeader(http.StatusForbidden)
 			fmt.Fprint(w, `{"error":{"code":403,"message":"The request is missing a valid API key.","status":"PERMISSION_DENIED"}}`)

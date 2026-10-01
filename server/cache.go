@@ -5,6 +5,7 @@ package main
 
 import (
 	"container/list"
+	"strings"
 	"sync"
 	"time"
 )
@@ -63,6 +64,17 @@ func (c *cache) set(key string, body []byte, contentType string, ttl time.Durati
 	c.size += size
 	for c.size > c.maxBytes {
 		c.remove(c.order.Back())
+	}
+}
+
+// removePrefix drops the entries whose key starts with prefix.
+func (c *cache) removePrefix(prefix string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for key, el := range c.entries {
+		if strings.HasPrefix(key, prefix) {
+			c.remove(el)
+		}
 	}
 }
 

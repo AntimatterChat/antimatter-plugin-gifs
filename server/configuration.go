@@ -32,6 +32,11 @@ type configuration struct {
 	// ProxyMedia serves the media through the plugin, so clients don't need to reach the service.
 	ProxyMedia  bool
 	CacheSizeMB int
+	// UploadKey is an upload key of the GIF service (AM_GIFS_UPLOAD_KEYS of antimatter-gifs): with
+	// it, users can add GIFs and stickers from the picker.
+	UploadKey string
+	// WhoCanUpload is who can add GIFs and stickers: admins (system admins) or everyone.
+	WhoCanUpload string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -64,6 +69,11 @@ func (c *configuration) contentFilter() string {
 		return c.ContentFilter
 	}
 	return "medium"
+}
+
+// everyoneCanUpload tells whether all users, not only system admins, can add GIFs and stickers.
+func (c *configuration) everyoneCanUpload() bool {
+	return c.WhoCanUpload == "everyone"
 }
 
 func (c *configuration) cacheBytes() int64 {

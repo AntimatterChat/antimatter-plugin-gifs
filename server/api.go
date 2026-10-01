@@ -5,19 +5,27 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/gorilla/mux"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 const requestBodyMaxSizeBytes = 64 * 1024
+
+// uploadMaxSizeBytes is the largest GIF or sticker users can add (the service's default limit).
+const uploadMaxSizeBytes = 16 << 20
 
 // ClientConfig is the part of the plugin configuration clients need.
 type ClientConfig struct {
 	Configured bool `json:"configured"`
 	Stickers   bool `json:"stickers"`
+	// CanUpload tells whether the user can add GIFs and stickers.
+	CanUpload bool `json:"can_upload"`
 }
 
 // newRouter returns the router of the plugin's REST API, served under
@@ -43,6 +51,7 @@ func (p *Plugin) newRouter() *mux.Router {
 	api.HandleFunc("/favorites/{kind:gif|sticker}/{id}", p.handleRemoveFavorite).Methods(http.MethodDelete)
 	api.HandleFunc("/recent", p.handleGetRecent).Methods(http.MethodGet)
 	api.HandleFunc("/post", p.handlePost).Methods(http.MethodPost)
+	api.HandleFunc("/upload", p.handleUpload).Methods(http.MethodPost)
 	api.HandleFunc("/actions/{action:send|shuffle|cancel}", p.handleAction).Methods(http.MethodPost)
 
 	return router
@@ -107,9 +116,100 @@ func localeParam(r *http.Request) string {
 	return strings.ReplaceAll(locale, "-", "_")
 }
 
-func (p *Plugin) handleGetConfig(w http.ResponseWriter, _ *http.Request) {
+func (p *Plugin) handleGetConfig(w http.ResponseWriter, r *http.Request) {
 	c := p.getConfiguration()
-	p.writeJSON(w, ClientConfig{Configured: c.serviceBase() != "", Stickers: c.EnableStickers})
+	p.writeJSON(w, ClientConfig{
+		Configured: c.serviceBase() != "",
+		Stickers:   c.EnableStickers,
+		CanUpload:  p.canUpload(r.Header.Get("Mattermost-User-Id")),
+	})
+}
+
+// canUpload tells whether a user can add GIFs and stickers: the service takes uploads, and the
+// user is a system admin unless everyone may add them.
+func (p *Plugin) canUpload(userID string) bool {
+	if !p.getService().canUpload() {
+		return false
+	}
+	return p.getConfiguration().everyoneCanUpload() || p.API.HasPermissionTo(userID, model.PermissionManageSystem)
+}
+
+// uploadText reads a text field of an upload, checking its length.
+func uploadText(r *http.Request, name string, maxLen int) (string, error) {
+	v := strings.TrimSpace(r.FormValue(name))
+	if utf8.RuneCountInString(v) > maxLen {
+		return "", newAPIError(http.StatusBadRequest, name+" is too long")
+	}
+	return v, nil
+}
+
+// handleUpload adds a GIF or sticker to the GIF service (multipart/form-data: file, kind, title,
+// tags, and pack for stickers) and to the user's favourites, and returns its item.
+func (p *Plugin) handleUpload(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-Id")
+	if !p.canUpload(userID) {
+		p.writeError(w, newAPIError(http.StatusForbidden, "you can't add GIFs or stickers"))
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, uploadMaxSizeBytes+1<<20)
+	if err := r.ParseMultipartForm(1 << 20); err != nil {
+		var mbe *http.MaxBytesError
+		if errors.As(err, &mbe) {
+			p.writeError(w, newAPIError(http.StatusRequestEntityTooLarge, "the file is larger than 16 MB"))
+			return
+		}
+		p.writeError(w, newAPIError(http.StatusBadRequest, "invalid upload"))
+		return
+	}
+	defer func() { _ = r.MultipartForm.RemoveAll() }()
+
+	kind, err := p.kindParam(r.FormValue("kind"))
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	up := UploadRequest{Kind: kind}
+	for _, f := range []struct {
+		into   *string
+		name   string
+		maxLen int
+	}{{&up.Title, "title", 100}, {&up.Tags, "tags", 500}, {&up.Pack, "pack", 60}} {
+		if *f.into, err = uploadText(r, f.name, f.maxLen); err != nil {
+			p.writeError(w, err)
+			return
+		}
+	}
+	if up.Title == "" {
+		p.writeError(w, newAPIError(http.StatusBadRequest, "a title is required"))
+		return
+	}
+	if kind != kindSticker {
+		up.Pack = ""
+	}
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		p.writeError(w, newAPIError(http.StatusBadRequest, "a file is required"))
+		return
+	}
+	defer file.Close()
+	if header.Size > uploadMaxSizeBytes {
+		p.writeError(w, newAPIError(http.StatusRequestEntityTooLarge, "the file is larger than 16 MB"))
+		return
+	}
+	up.FileName = header.Filename
+	up.File = file
+
+	it, err := p.getService().Upload(r.Context(), up)
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	// The user finds it among their favourites right away.
+	if _, err := p.store.AddFavorite(userID, *it); err != nil {
+		p.API.LogWarn("Failed to add an upload to the favourites", "err", err.Error())
+	}
+	p.API.LogInfo("GIF added", "user_id", userID, "kind", it.Kind, "id", it.ID)
+	p.writeJSON(w, it)
 }
 
 func (p *Plugin) handleSearch(w http.ResponseWriter, r *http.Request) {
