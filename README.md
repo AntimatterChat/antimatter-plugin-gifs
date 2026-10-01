@@ -12,6 +12,10 @@ sticker pack), or Tenor itself.
   for Favorites, Recent, Trending and the service's categories (and suggested searches while
   searching) over a two-column grid that loads more as it scrolls; for stickers, the recently used
   and favourite stickers and a section per sticker pack.
+- **Adding GIFs and stickers** (antimatter-gifs with an upload key): a "+" button next to the
+  search box opens a dialog taking a file (GIF, PNG, WebP, MP4 or WebM GIFs; PNG, WebP, GIF or SVG
+  stickers, up to 16 MB), a title, tags and a sticker pack. The service converts it; it lands in the
+  user's favourites and can be sent right away. System admins only by default.
 - **Favourites** per user (the star on each GIF and sticker, in the picker and on posts) and
   **recently used** items, kept on the server.
 - **Posts**: a GIF plays as a muted, looping video (or GIF) up to 320px wide with a GIF badge and the
@@ -50,6 +54,8 @@ sticker pack), or Tenor itself.
 | Content filter (`ContentFilter`) | medium | Tenor's `contentfilter`: high (G), medium (G, PG), low (up to PG-13), off. |
 | Serve the media through Antimatter (`ProxyMedia`) | true | Media files are served under `/plugins/com.antimatterchat.gifs/media/` to signed-in users. When false, browsers load them from the service, which must then be reachable from them. |
 | Media URL (`MediaURL`) | service origin + `/media/` | Base URL of the media files to proxy, when they aren't served by the service itself (a CDN; `https://media.tenor.com/` for Tenor). |
+| Upload key (`UploadKey`) | empty | An upload key of antimatter-gifs (`AM_GIFS_UPLOAD_KEYS`). With it, users can add GIFs and stickers; stays on the server. |
+| Who can add GIFs and stickers (`WhoCanUpload`) | admins | `admins` (system admins) or `everyone`. |
 | Cache size (`CacheSizeMB`) | 64 | Memory for cached answers and media files. |
 
 The core GIF picker of the emoji picker (`ServiceSettings.EnableGifPicker`) uses Giphy directly from
@@ -76,7 +82,7 @@ REST API under `/plugins/com.antimatterchat.gifs` (user session required):
 
 | Method & path | Response |
 | --- | --- |
-| `GET /api/v1/config` | `{"configured": bool, "stickers": bool}` |
+| `GET /api/v1/config` | `{"configured": bool, "stickers": bool, "can_upload": bool}` |
 | `GET /api/v1/search?q=&kind=gif\|sticker&pos=&limit=&locale=` | `{"items": [Item], "next": "..."}` |
 | `GET /api/v1/featured?kind=&pos=&limit=&locale=` | the same, for the trending items |
 | `GET /api/v1/categories?kind=` | `[{"name", "searchterm", "image"}]`: GIF categories or sticker packs |
@@ -84,6 +90,7 @@ REST API under `/plugins/com.antimatterchat.gifs` (user session required):
 | `GET /api/v1/favorites`, `POST /api/v1/favorites` `{"kind", "id"}`, `DELETE /api/v1/favorites/{kind}/{id}` | the user's favourites, `[Item]` |
 | `GET /api/v1/recent` | the user's recently used items |
 | `POST /api/v1/post` `{"kind", "id", "channel_id", "root_id", "query"}` | the created post |
+| `POST /api/v1/upload` (multipart: `file`, `kind`, `title`, `tags`, `pack`) | the new `Item`, also added to the favourites; `can_upload` of `/config` tells who may |
 | `POST /api/v1/actions/{send,shuffle,cancel}` | the buttons of the `/gif` preview |
 | `GET /media/{path}` | a media file of the service (cached, range requests, sandboxing CSP) |
 
