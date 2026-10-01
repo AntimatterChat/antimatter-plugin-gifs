@@ -42,6 +42,7 @@ func (p *Plugin) newRouter() *mux.Router {
 	api.HandleFunc("/favorites", p.handleAddFavorite).Methods(http.MethodPost)
 	api.HandleFunc("/favorites/{kind:gif|sticker}/{id}", p.handleRemoveFavorite).Methods(http.MethodDelete)
 	api.HandleFunc("/recent", p.handleGetRecent).Methods(http.MethodGet)
+	api.HandleFunc("/post", p.handlePost).Methods(http.MethodPost)
 
 	return router
 }
@@ -246,4 +247,37 @@ func (p *Plugin) handleGetRecent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.writeJSON(w, items)
+}
+
+// postRequest asks to post an item in a channel or thread.
+type postRequest struct {
+	itemRequest
+	ChannelID string `json:"channel_id"`
+	RootID    string `json:"root_id"`
+	// Query is the search that found the item, for the service's trending terms.
+	Query string `json:"query"`
+}
+
+func (p *Plugin) handlePost(w http.ResponseWriter, r *http.Request) {
+	var req postRequest
+	if err := p.readJSON(r, &req); err != nil {
+		p.writeError(w, err)
+		return
+	}
+	userID := r.Header.Get("Mattermost-User-Id")
+	if err := p.checkCanPost(userID, req.ChannelID, req.RootID); err != nil {
+		p.writeError(w, err)
+		return
+	}
+	it, err := p.fetchItem(r, req.itemRequest)
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	post, err := p.postItem(userID, req.ChannelID, req.RootID, it, req.Query)
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	p.writeJSON(w, post)
 }

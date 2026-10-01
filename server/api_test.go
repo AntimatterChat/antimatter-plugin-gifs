@@ -8,8 +8,11 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -155,6 +158,61 @@ func TestFavorites(t *testing.T) {
 
 	// Another user has their own.
 	assert.Equal(t, []Item{}, decode[[]Item](t, env.do(t, http.MethodGet, "/api/v1/favorites", "otheruserxxxxxxxxxxxxxxxxx", nil)))
+}
+
+func TestPost(t *testing.T) {
+	env := newTestEnv(t, nil)
+	env.api.On("HasPermissionToChannel", testUserID, testChannelID, model.PermissionCreatePost).Return(true)
+	env.api.On("HasPermissionToChannel", mock.Anything, mock.Anything, model.PermissionCreatePost).Return(false)
+	var created *model.Post
+	env.api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(func(post *model.Post) (*model.Post, *model.AppError) {
+		created = post.Clone()
+		created.Id = model.NewId()
+		return created, nil
+	})
+
+	rec := env.do(t, http.MethodPost, "/api/v1/post", testUserID, postRequest{
+		itemRequest: itemRequest{Kind: kindGIF, ID: "g1"}, ChannelID: testChannelID, RootID: testRootID, Query: "cat",
+	})
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	require.NotNil(t, created)
+	assert.Equal(t, PostType, created.Type)
+	assert.Equal(t, testUserID, created.UserId)
+	assert.Equal(t, testChannelID, created.ChannelId)
+	assert.Equal(t, testRootID, created.RootId)
+	assert.Equal(t, "![Happy cat](https://chat.example.com"+mediaPrefix+"g1/gif.gif)", created.Message)
+	props, ok := created.GetProp(PostPropKey).(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "g1", props["id"])
+	assert.Equal(t, mediaPrefix+"g1/mp4.mp4", props["post"].(map[string]any)["url"])
+	assert.Equal(t, true, props["post"].(map[string]any)["video"])
+
+	// The share is registered with the search, and the GIF is recently used.
+	assert.Eventually(t, func() bool {
+		env.service.mu.Lock()
+		defer env.service.mu.Unlock()
+		return len(env.service.shares) == 1 && env.service.shares[0] == "g1:cat"
+	}, 2*time.Second, 10*time.Millisecond)
+	recent := decode[[]Item](t, env.do(t, http.MethodGet, "/api/v1/recent", testUserID, nil))
+	require.Len(t, recent, 1)
+	assert.Equal(t, "g1", recent[0].ID)
+
+	// Stickers post their image.
+	rec = env.do(t, http.MethodPost, "/api/v1/post", testUserID, postRequest{itemRequest: itemRequest{Kind: kindSticker, ID: "s1"}, ChannelID: testChannelID})
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	assert.Equal(t, "![It works!](https://chat.example.com"+mediaPrefix+"s1/tinywebp_transparent.webp)", created.Message)
+	assert.Equal(t, "", created.RootId)
+
+	// Checks.
+	assert.Equal(t, http.StatusForbidden, env.do(t, http.MethodPost, "/api/v1/post", testUserID, postRequest{
+		itemRequest: itemRequest{Kind: kindGIF, ID: "g1"}, ChannelID: "otherchannelxxxxxxxxxxxxxx",
+	}).Code)
+	assert.Equal(t, http.StatusBadRequest, env.do(t, http.MethodPost, "/api/v1/post", testUserID, postRequest{
+		itemRequest: itemRequest{Kind: kindGIF, ID: "g1"}, ChannelID: "bad",
+	}).Code)
+	assert.Equal(t, http.StatusNotFound, env.do(t, http.MethodPost, "/api/v1/post", testUserID, postRequest{
+		itemRequest: itemRequest{Kind: kindSticker, ID: "g1"}, ChannelID: testChannelID,
+	}).Code)
 }
 
 func TestMediaProxy(t *testing.T) {
