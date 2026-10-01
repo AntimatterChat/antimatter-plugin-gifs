@@ -7,10 +7,11 @@ sticker pack), or Tenor itself.
 
 ## Features
 
-- **Picker**, after the Fusion UI mockup's GIF and sticker picker: GIFs and Stickers tabs and a
-  search box; for GIFs, chips for Favorites, Recent, Trending and the service's categories (and
-  suggested searches while searching) over a two-column grid that loads more as it scrolls; for
-  stickers, the recently used and favourite stickers and a section per sticker pack.
+- **Picker**, after the Fusion UI mockup's GIF and sticker picker: GIFs and Stickers tabs of the
+  message box's emoji picker (or the plugin's own picker), each with a search box; for GIFs, chips
+  for Favorites, Recent, Trending and the service's categories (and suggested searches while
+  searching) over a two-column grid that loads more as it scrolls; for stickers, the recently used
+  and favourite stickers and a section per sticker pack.
 - **Favourites** per user (the star on each GIF and sticker, in the picker and on posts) and
   **recently used** items, kept on the server.
 - **Posts**: a GIF plays as a muted, looping video (or GIF) up to 320px wide with a GIF badge and the
@@ -52,18 +53,20 @@ sticker pack), or Tenor itself.
 | Cache size (`CacheSizeMB`) | 64 | Memory for cached answers and media files. |
 
 The core GIF picker of the emoji picker (`ServiceSettings.EnableGifPicker`) uses Giphy directly from
-browsers; turn it off when this plugin replaces it.
+browsers. On Antimatter, the plugin's GIFs tab replaces it while GIFs are set up (the Giphy tab is
+hidden); on other hosts, turn it off when this plugin replaces it.
 
 ## Where the picker opens
 
 | Host | Entry points |
 | --- | --- |
-| Antimatter with `registerComposerMenuItem` | "GIF or sticker" in the message box's "+" menu (Fusion's sticker icon under Fusion), `/gif`, `/sticker` |
+| Antimatter with `registerEmojiPickerTab` | GIFs and Stickers tabs of the message box's emoji picker (before Emoji under Fusion, as in the mockup; after Emojis in the classic UI), `/gif`, `/sticker` |
+| Antimatter with only `registerComposerMenuItem` | "GIF or sticker" in the message box's "+" menu (Fusion's sticker icon under Fusion), `/gif`, `/sticker` |
 | Other hosts | A channel header button, `/gif`, `/sticker` |
 
-The plugin also sets `window.antimatterGifs.openPicker({channelId, rootId?, tab?: 'gif' | 'sticker',
-query?})`, so the host can open the picker, e.g. from GIF and sticker tabs of its emoji picker as in
-the mockup.
+`/gif` and `/sticker` open the plugin's own picker on the search. The plugin also sets
+`window.antimatterGifs.openPicker({channelId, rootId?, tab?: 'gif' | 'sticker', query?})`, so the host
+can open that picker too.
 
 ## How it works
 
@@ -100,7 +103,8 @@ are snapshots of items in the KV store (`fav_<user id>`, `recent_<user id>`).
 
 | Hook | Used for | Without it |
 | --- | --- | --- |
-| `registerComposerMenuItem` (Antimatter) | "+" menu item | a channel header button |
+| `registerEmojiPickerTab` (Antimatter) | GIFs and Stickers tabs of the emoji picker, replacing its Giphy tab | the "+" menu item |
+| `registerComposerMenuItem` (Antimatter) | "+" menu item, without emoji picker tabs | a channel header button |
 | `registerPostTypeComponent` | GIF and sticker posts | |
 | `registerRootComponent` | the picker | |
 | `registerSlashCommandWillBePostedHook` | `/gif` and `/sticker` open the picker | the server's preview |
