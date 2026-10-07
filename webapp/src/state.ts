@@ -81,6 +81,10 @@ export function useUpload() {
     return useObservable(upload);
 }
 
+export function getUpload() {
+    return upload.get();
+}
+
 // The plugin configuration the clients see.
 // null until loaded.
 const config = new Observable<ClientConfig | null>(null);

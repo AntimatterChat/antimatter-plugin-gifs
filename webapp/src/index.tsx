@@ -13,7 +13,7 @@ import PickerRoot from './components/picker_root';
 import UploadDialogRoot from './components/upload_dialog';
 import manifest from './manifest';
 import {messages} from './messages';
-import {closePicker, closeUpload, getClientConfig, loadConfig, openPicker, resetFavorites} from './state';
+import {closePicker, closeUpload, getClientConfig, loadConfig, openPicker, openUpload, resetFavorites} from './state';
 import type {GifsAPI, PluginClass, PluginRegistry, SlashCommandArgs, SlashCommandResult} from './types/host';
 import type {Kind} from './types/gifs';
 
@@ -36,12 +36,36 @@ export function openFromCommand(message: string, args: SlashCommandArgs): SlashC
     return {};
 }
 
+// registerIntegrationsOptions adds "Custom GIFs" and "Custom stickers" to the host's integrations
+// pages, next to custom emoji, for the users who can add some: they open the upload dialog. The
+// configuration is loaded by then, so the entries show as soon as they're registered.
+export function registerIntegrationsOptions(registry: PluginRegistry) {
+    const config = getClientConfig();
+    if (typeof registry.registerIntegrationsOption !== 'function' || !config?.configured || !config.can_upload) {
+        return;
+    }
+    registry.registerIntegrationsOption({
+        title: <FormattedMessage {...messages.customGifs}/>,
+        description: <FormattedMessage {...messages.customGifsDescription}/>,
+        fusionIcon: 'image',
+        action: () => openUpload({kind: 'gif'}),
+    });
+    if (config.stickers) {
+        registry.registerIntegrationsOption({
+            title: <FormattedMessage {...messages.customStickers}/>,
+            description: <FormattedMessage {...messages.customStickersDescription}/>,
+            fusionIcon: 'sticker',
+            action: () => openUpload({kind: 'sticker'}),
+        });
+    }
+}
+
 export default class Plugin implements PluginClass {
     public initialize(registry: PluginRegistry) {
         if (window.basename) {
             Client4.setUrl(window.basename);
         }
-        loadConfig();
+        loadConfig().then(() => registerIntegrationsOptions(registry));
 
         registry.registerPostTypeComponent(POST_TYPE, GifPost);
         registry.registerRootComponent(PickerRoot);

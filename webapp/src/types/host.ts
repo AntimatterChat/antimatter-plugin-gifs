@@ -68,6 +68,15 @@ export interface PluginRegistry {
         shouldRender?: (state: GlobalState, ctx: ComposerMenuItemContext) => boolean;
         replacesGifPicker?: boolean;
     }): string;
+
+    // Antimatter: an entry of the integrations pages, next to custom emoji.
+    registerIntegrationsOption?(option: {
+        title: React.ReactNode;
+        description: React.ReactNode;
+        fusionIcon?: string;
+        action: () => void;
+        shouldRender?: (state: GlobalState) => boolean;
+    }): string;
 }
 
 export type PluginStore = Store<GlobalState>;

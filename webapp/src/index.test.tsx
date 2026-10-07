@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import * as client from './client';
-import {getPicker, loadConfig} from './state';
+import {getPicker, getUpload, loadConfig} from './state';
 import type {PluginClass, PluginRegistry} from './types/host';
 
 jest.mock('./client', () => ({
@@ -11,12 +11,14 @@ jest.mock('./client', () => ({
 
 let Plugin: new () => PluginClass;
 let openFromCommand: typeof import('./index').openFromCommand;
+let registerIntegrationsOptions: typeof import('./index').registerIntegrationsOptions;
 beforeAll(() => {
     window.registerPlugin = jest.fn();
     // eslint-disable-next-line global-require
     const index = require('./index');
     Plugin = index.default;
     openFromCommand = index.openFromCommand;
+    registerIntegrationsOptions = index.registerIntegrationsOptions;
 });
 
 function makeRegistry(withComposerMenu: boolean, withEmojiPickerTabs = false) {
@@ -96,4 +98,28 @@ test('/gif and /sticker open the picker', async () => {
     (client.getConfig as jest.Mock).mockResolvedValue({configured: true, stickers: false});
     await loadConfig();
     expect(openFromCommand('/sticker x', args)).toEqual({message: '/sticker x', args});
+});
+
+test('adds custom GIFs and stickers to the integrations pages for those who can add some', async () => {
+    const register = jest.fn();
+    const registry = {registerIntegrationsOption: register} as unknown as PluginRegistry;
+
+    (client.getConfig as jest.Mock).mockResolvedValueOnce({configured: true, stickers: true, can_upload: true});
+    await loadConfig();
+    registerIntegrationsOptions(registry);
+    expect(register.mock.calls.map(([option]) => option.fusionIcon)).toEqual(['image', 'sticker']);
+    register.mock.calls[1][0].action();
+    expect(getUpload()).toEqual({kind: 'sticker'});
+
+    register.mockClear();
+    (client.getConfig as jest.Mock).mockResolvedValueOnce({configured: true, stickers: false, can_upload: true});
+    await loadConfig();
+    registerIntegrationsOptions(registry);
+    expect(register.mock.calls.map(([option]) => option.fusionIcon)).toEqual(['image']);
+
+    register.mockClear();
+    (client.getConfig as jest.Mock).mockResolvedValueOnce({configured: true, stickers: true, can_upload: false});
+    await loadConfig();
+    registerIntegrationsOptions(registry);
+    expect(register).not.toHaveBeenCalled();
 });
