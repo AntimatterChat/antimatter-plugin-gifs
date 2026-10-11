@@ -48,15 +48,28 @@ sticker pack), or Tenor itself.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| GIF service URL (`ServiceURL`) | empty | Base URL of the Tenor API v2: `http://antimatter-gifs:8080/v2`, or `https://tenor.googleapis.com/v2`. GIFs are off while empty. |
-| API key (`APIKey`) | empty | The service's API key (one of `AM_GIFS_API_KEYS`, or your Tenor key). Stays on the server. |
+| GIF service URL (`ServiceURL`) | empty | Base URL of the Tenor API v2: `http://antimatter-gifs:8080/v2`, or `https://tenor.googleapis.com/v2`. When empty, `AM_GIFS_SERVICE_URL` is used; GIFs are off while both are empty. |
+| API key (`APIKey`) | empty | The service's API key (one of `AM_GIFS_API_KEYS`, or your Tenor key). When empty, `AM_GIFS_API_KEY` is used. Stays on the server. |
 | Enable stickers (`EnableStickers`) | true | Stickers tab, `/sticker`. |
 | Content filter (`ContentFilter`) | medium | Tenor's `contentfilter`: high (G), medium (G, PG), low (up to PG-13), off. |
 | Serve the media through Antimatter (`ProxyMedia`) | true | Media files are served under `/plugins/com.antimatterchat.gifs/media/` to signed-in users. When false, browsers load them from the service, which must then be reachable from them. |
 | Media URL (`MediaURL`) | service origin + `/media/` | Base URL of the media files to proxy, when they aren't served by the service itself (a CDN; `https://media.tenor.com/` for Tenor). |
-| Upload key (`UploadKey`) | empty | An upload key of antimatter-gifs (`AM_GIFS_UPLOAD_KEYS`). With it, users can add GIFs and stickers; stays on the server. |
+| Upload key (`UploadKey`) | empty | An upload key of antimatter-gifs (`AM_GIFS_UPLOAD_KEYS`). With it, users can add GIFs and stickers; stays on the server. When empty, `AM_GIFS_UPLOAD_KEY` is used. |
 | Who can add GIFs and stickers (`WhoCanUpload`) | admins | `admins` (system admins) or `everyone`. |
 | Cache size (`CacheSizeMB`) | 64 | Memory for cached answers and media files. |
+
+The service URL, API key and upload key can also come from environment variables of the Antimatter
+server, which its plugins inherit, so a docker-compose file can set up GIFs without the System
+Console. A value set in the System Console wins over the variable.
+
+```yaml
+services:
+  antimatter:
+    environment:
+      AM_GIFS_SERVICE_URL: http://antimatter-gifs:8080/v2
+      AM_GIFS_API_KEY: change-me          # one of the service's AM_GIFS_API_KEYS
+      AM_GIFS_UPLOAD_KEY: change-me-too   # optional, one of its AM_GIFS_UPLOAD_KEYS
+```
 
 The core GIF picker of the emoji picker (`ServiceSettings.EnableGifPicker`) uses Giphy directly from
 browsers. On Antimatter, the plugin's GIFs tab replaces it while GIFs are set up (the Giphy tab is

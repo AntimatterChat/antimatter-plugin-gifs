@@ -5,6 +5,7 @@ package main
 
 import (
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 
@@ -37,6 +38,28 @@ type configuration struct {
 	UploadKey string
 	// WhoCanUpload is who can add GIFs and stickers: admins (system admins) or everyone.
 	WhoCanUpload string
+}
+
+// The environment variables that configure the plugin when the matching setting is empty in the
+// System Console, e.g. from a docker-compose file. Plugins inherit the server's environment.
+const (
+	envServiceURL = "AM_GIFS_SERVICE_URL"
+	envAPIKey     = "AM_GIFS_API_KEY"
+	envUploadKey  = "AM_GIFS_UPLOAD_KEY"
+)
+
+// applyEnvironment fills the service URL, API key and upload key left empty in the System Console
+// from their environment variables, read with getenv. A value set in the System Console wins.
+func (c *configuration) applyEnvironment(getenv func(string) string) {
+	for name, setting := range map[string]*string{
+		envServiceURL: &c.ServiceURL,
+		envAPIKey:     &c.APIKey,
+		envUploadKey:  &c.UploadKey,
+	} {
+		if strings.TrimSpace(*setting) == "" {
+			*setting = strings.TrimSpace(getenv(name))
+		}
+	}
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -147,6 +170,7 @@ func (p *Plugin) OnConfigurationChange() error {
 	if err := p.API.LoadPluginConfiguration(configuration); err != nil {
 		return errors.Wrap(err, "failed to load plugin configuration")
 	}
+	configuration.applyEnvironment(os.Getenv)
 	if err := configuration.IsValid(); err != nil {
 		return errors.Wrap(err, "invalid plugin configuration")
 	}

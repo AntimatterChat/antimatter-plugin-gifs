@@ -29,7 +29,7 @@
                 "type": "text",
                 "default": "",
                 "placeholder": "http://antimatter-gifs:8080/v2",
-                "help_text": "The base URL of the Tenor API v2 of the GIF service, e.g. http://antimatter-gifs:8080/v2 for antimatter-gifs or https://tenor.googleapis.com/v2 for Tenor. GIFs are off while it is empty."
+                "help_text": "The base URL of the Tenor API v2 of the GIF service, e.g. http://antimatter-gifs:8080/v2 for antimatter-gifs or https://tenor.googleapis.com/v2 for Tenor. When empty, the AM_GIFS_SERVICE_URL environment variable of the server is used; GIFs are off while both are empty."
             },
             {
                 "key": "APIKey",
@@ -37,7 +37,7 @@
                 "type": "text",
                 "secret": true,
                 "default": "",
-                "help_text": "The API key of the GIF service (one of AM_GIFS_API_KEYS for antimatter-gifs). It stays on the server."
+                "help_text": "The API key of the GIF service (one of AM_GIFS_API_KEYS for antimatter-gifs). When empty, the AM_GIFS_API_KEY environment variable of the server is used. It stays on the server."
             },
             {
                 "key": "EnableStickers",
@@ -92,7 +92,7 @@
                 "type": "text",
                 "secret": true,
                 "default": "",
-                "help_text": "An upload key of the GIF service (one of AM_GIFS_UPLOAD_KEYS for antimatter-gifs). With it, users can add GIFs and stickers from the picker; uploads are off while it is empty. It stays on the server."
+                "help_text": "An upload key of the GIF service (one of AM_GIFS_UPLOAD_KEYS for antimatter-gifs). With it, users can add GIFs and stickers from the picker. When empty, the AM_GIFS_UPLOAD_KEY environment variable of the server is used; uploads are off while both are empty. It stays on the server."
             },
             {
                 "key": "WhoCanUpload",

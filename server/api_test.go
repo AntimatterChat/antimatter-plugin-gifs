@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -268,4 +269,49 @@ func TestConfiguration(t *testing.T) {
 	assert.Error(t, (&configuration{MediaURL: "/media"}).IsValid())
 	assert.NoError(t, (&configuration{}).IsValid())
 	assert.Equal(t, "", (&configuration{}).mediaBase())
+}
+
+func TestConfigurationEnvironment(t *testing.T) {
+	env := map[string]string{
+		"AM_GIFS_SERVICE_URL": " http://gifs-env:8080/v2 ",
+		"AM_GIFS_API_KEY":     "env-key",
+		"AM_GIFS_UPLOAD_KEY":  "env-upload",
+	}
+	getenv := func(name string) string { return env[name] }
+
+	t.Run("empty settings come from the environment", func(t *testing.T) {
+		c := &configuration{}
+		c.applyEnvironment(getenv)
+		assert.Equal(t, "http://gifs-env:8080/v2", c.ServiceURL)
+		assert.Equal(t, "env-key", c.APIKey)
+		assert.Equal(t, "env-upload", c.UploadKey)
+	})
+
+	t.Run("System Console values win", func(t *testing.T) {
+		c := &configuration{ServiceURL: "http://gifs:8080/v2", APIKey: "console-key", UploadKey: " "}
+		c.applyEnvironment(getenv)
+		assert.Equal(t, "http://gifs:8080/v2", c.ServiceURL)
+		assert.Equal(t, "console-key", c.APIKey)
+		assert.Equal(t, "env-upload", c.UploadKey, "a blank setting counts as empty")
+	})
+
+	t.Run("OnConfigurationChange reads the process environment", func(t *testing.T) {
+		t.Setenv("AM_GIFS_SERVICE_URL", "http://gifs-env:8080/v2")
+		t.Setenv("AM_GIFS_API_KEY", "env-key")
+		t.Setenv("AM_GIFS_UPLOAD_KEY", "")
+
+		api := &plugintest.API{}
+		api.On("LoadPluginConfiguration", mock.Anything).Run(func(args mock.Arguments) {
+			args.Get(0).(*configuration).UploadKey = "console-upload"
+		}).Return(nil)
+		p := &Plugin{}
+		p.SetAPI(api)
+
+		require.NoError(t, p.OnConfigurationChange())
+		c := p.getConfiguration()
+		assert.Equal(t, "http://gifs-env:8080/v2", c.serviceBase())
+		assert.Equal(t, "env-key", c.APIKey)
+		assert.Equal(t, "console-upload", c.UploadKey)
+		assert.NotNil(t, p.getService())
+	})
 }
