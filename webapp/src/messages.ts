@@ -41,7 +41,7 @@ export const messages = defineMessages({
     customStickers: {id: 'gifs.integrations.stickers', defaultMessage: 'Custom stickers'},
     customStickersDescription: {id: 'gifs.integrations.stickers.description', defaultMessage: 'Add stickers of your own, for everyone to find in the sticker picker'},
     uploadGifLead: {id: 'gifs.upload.gif_lead', defaultMessage: 'A GIF, PNG, WebP, MP4 or WebM file up to 16 MB. Everyone can find it once it’s added.'},
-    uploadStickerLead: {id: 'gifs.upload.sticker_lead', defaultMessage: 'A PNG, WebP, GIF or SVG file up to 16 MB, ideally with a transparent background. Everyone can find it once it’s added.'},
+    uploadStickerLead: {id: 'gifs.upload.sticker_lead', defaultMessage: 'A PNG, WebP or GIF file up to 16 MB, or an SVG file up to 1 MB, ideally with a transparent background. Everyone can find it once it’s added.'},
     uploadFile: {id: 'gifs.upload.file', defaultMessage: 'File'},
     uploadChoose: {id: 'gifs.upload.choose', defaultMessage: 'Choose a file', description: 'Button of the File field of the dialog adding a GIF or sticker (Fusion UI), opening the file chooser.'},
     uploadChange: {id: 'gifs.upload.change', defaultMessage: 'Choose another file', description: 'The same button once a file is chosen; the file name shows next to it.'},

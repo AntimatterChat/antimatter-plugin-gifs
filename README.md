@@ -14,10 +14,10 @@ sticker pack), or Tenor itself.
   and favourite stickers and a section per sticker pack.
 - **Adding GIFs and stickers** (gifs-server with an upload key): a "+" button next to the
   search box opens a dialog taking a file (GIF, PNG, WebP, MP4 or WebM GIFs; PNG, WebP, GIF or SVG
-  stickers, up to 16 MB), a title, tags and a sticker pack. The service converts it; it lands in the
-  user's favourites and can be sent right away. System admins only by default. In Antimatter's
-  Fusion picker, "+" opens the same form inside the picker instead (drop or paste a file too), and
-  the picker stays open with the new GIF or sticker first.
+  stickers, up to 16 MB, 1 MB for SVG), a title, tags and a sticker pack. The service converts it;
+  it lands in the user's favourites and can be sent right away. System admins only by default. In
+  Antimatter's Fusion picker, "+" opens the same form inside the picker instead (drop or paste a
+  file too), and the picker stays open with the new GIF or sticker first.
 - **Managing what was added** (Fusion picker, gifs-server with `DELETE /v2/upload/{id}`): a manage
   button next to "+" lists the GIFs or stickers people added, newest first, searchable, with who
   added them and when. People delete their own (while they may add some); system admins delete
