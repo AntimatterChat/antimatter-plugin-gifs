@@ -145,7 +145,7 @@ func (p *Plugin) previewPost(postID, userID, channelID string, c previewContext,
 		RootId:    c.RootID,
 		CreateAt:  model.GetMillis(),
 	}
-	model.ParseSlackAttachment(post, []*model.SlackAttachment{{
+	model.ParseMessageAttachment(post, []*model.MessageAttachment{{
 		Fallback: title,
 		Title:    title,
 		ImageURL: p.absoluteURL(it.imageURL()),

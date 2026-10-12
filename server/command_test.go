@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func previewOf(t *testing.T, post *model.Post) (*model.SlackAttachment, map[string]any) {
+func previewOf(t *testing.T, post *model.Post) (*model.MessageAttachment, map[string]any) {
 	t.Helper()
 	attachments := post.Attachments()
 	require.Len(t, attachments, 1)
