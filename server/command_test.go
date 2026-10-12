@@ -106,4 +106,10 @@ func TestPreviewActions(t *testing.T) {
 
 	resp = action("send", map[string]any{"kind": "gif", "id": "missing"})
 	assert.Contains(t, resp.EphemeralText, "isn't available")
+
+	resp = action("send", map[string]any{"kind": "video", "id": "g1"})
+	assert.Contains(t, resp.EphemeralText, "kind must be gif or sticker")
+	env.p.getConfiguration().EnableStickers = false
+	resp = action("shuffle", map[string]any{"kind": "sticker", "query": "works"})
+	assert.Contains(t, resp.EphemeralText, "stickers are turned off")
 }

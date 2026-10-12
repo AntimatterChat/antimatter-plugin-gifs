@@ -177,10 +177,21 @@ func (p *Plugin) handleAction(w http.ResponseWriter, r *http.Request) {
 		p.writeJSON(w, resp)
 	}
 
-	switch mux.Vars(r)["action"] {
-	case "cancel":
+	action := mux.Vars(r)["action"]
+	if action == "cancel" {
 		p.API.DeleteEphemeralPost(userID, req.PostId)
 		respond("")
+		return
+	}
+	// The endpoint can be called directly, with any context: check the kind like the API does
+	// (stickers may have been turned off since the preview, too).
+	kind, err := p.kindParam(c.Kind)
+	if err != nil {
+		respond(err.Error())
+		return
+	}
+	c.Kind = kind
+	switch action {
 	case "shuffle":
 		page, err := p.getService().Search(r.Context(), c.Kind, c.Query, "", "", previewResults)
 		if err != nil || len(page.Items) == 0 {
