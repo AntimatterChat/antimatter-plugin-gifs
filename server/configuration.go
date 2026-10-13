@@ -21,7 +21,7 @@ import (
 // strategy used in this plugin is to guard a pointer to the configuration, and clone the entire
 // struct whenever it changes. You may replace this with whatever strategy you choose.
 type configuration struct {
-	// ServiceURL is the Tenor API v2 base URL of the GIF service, e.g. http://antimatter-gifs:8080/v2.
+	// ServiceURL is the Tenor API v2 base URL of the GIF service, e.g. http://gifs-server:8080/v2.
 	ServiceURL string
 	APIKey     string
 	// MediaURL is the base URL of the service's media files, which the plugin proxies; by
@@ -33,7 +33,7 @@ type configuration struct {
 	// ProxyMedia serves the media through the plugin, so clients don't need to reach the service.
 	ProxyMedia  bool
 	CacheSizeMB int
-	// UploadKey is an upload key of the GIF service (AM_GIFS_UPLOAD_KEYS of antimatter-gifs): with
+	// UploadKey is an upload key of the GIF service (AM_GIFS_UPLOAD_KEYS of gifs-server): with
 	// it, users can add GIFs and stickers from the picker.
 	UploadKey string
 	// WhoCanUpload is who can add GIFs and stickers: admins (system admins) or everyone.

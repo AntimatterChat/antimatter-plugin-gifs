@@ -348,7 +348,7 @@ func (s *gifService) canUpload() bool {
 	return s.configured() && s.uploadKey != ""
 }
 
-// UploadRequest is a GIF or sticker to add to the GIF service (antimatter-gifs' POST /v2/upload).
+// UploadRequest is a GIF or sticker to add to the GIF service (gifs-server' POST /v2/upload).
 type UploadRequest struct {
 	Kind  string
 	Title string

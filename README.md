@@ -2,7 +2,7 @@
 
 An Antimatter plugin to post GIFs and stickers, from a GIF service with the
 [Tenor API v2](https://developers.google.com/tenor/guides/endpoints): the self-hosted
-[antimatter-gifs](https://github.com/antimatterchat/antimatter-gifs) service (with its original
+[gifs-server](https://github.com/antimatterchat/gifs-server) service (with its original
 sticker pack), or Tenor itself.
 
 ## Features
@@ -12,7 +12,7 @@ sticker pack), or Tenor itself.
   for Favorites, Recent, Trending and the service's categories (and suggested searches while
   searching) over a two-column grid that loads more as it scrolls; for stickers, the recently used
   and favourite stickers and a section per sticker pack.
-- **Adding GIFs and stickers** (antimatter-gifs with an upload key): a "+" button next to the
+- **Adding GIFs and stickers** (gifs-server with an upload key): a "+" button next to the
   search box opens a dialog taking a file (GIF, PNG, WebP, MP4 or WebM GIFs; PNG, WebP, GIF or SVG
   stickers, up to 16 MB), a title, tags and a sticker pack. The service converts it; it lands in the
   user's favourites and can be sent right away. System admins only by default.
@@ -36,11 +36,11 @@ sticker pack), or Tenor itself.
 
 ## Setup
 
-1. Run the GIF service, e.g. antimatter-gifs with Docker:
+1. Run the GIF service, e.g. gifs-server with Docker:
 
    ```sh
-   docker run --rm -v gifs-data:/data antimatter-gifs stickers      # import the sticker pack
-   docker run -d --name antimatter-gifs -v gifs-data:/data -e AM_GIFS_API_KEYS=change-me antimatter-gifs
+   docker run --rm -v gifs-data:/data gifs-server stickers      # import the sticker pack
+   docker run -d --name gifs-server -v gifs-data:/data -e AM_GIFS_API_KEYS=change-me gifs-server
    ```
 
    It only needs to be reachable from the Antimatter server.
@@ -48,13 +48,13 @@ sticker pack), or Tenor itself.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| GIF service URL (`ServiceURL`) | empty | Base URL of the Tenor API v2: `http://antimatter-gifs:8080/v2`, or `https://tenor.googleapis.com/v2`. When empty, `AM_GIFS_SERVICE_URL` is used; GIFs are off while both are empty. |
+| GIF service URL (`ServiceURL`) | empty | Base URL of the Tenor API v2: `http://gifs-server:8080/v2`, or `https://tenor.googleapis.com/v2`. When empty, `AM_GIFS_SERVICE_URL` is used; GIFs are off while both are empty. |
 | API key (`APIKey`) | empty | The service's API key (one of `AM_GIFS_API_KEYS`, or your Tenor key). When empty, `AM_GIFS_API_KEY` is used. Stays on the server. |
 | Enable stickers (`EnableStickers`) | true | Stickers tab, `/sticker`. |
 | Content filter (`ContentFilter`) | medium | Tenor's `contentfilter`: high (G), medium (G, PG), low (up to PG-13), off. |
 | Serve the media through Antimatter (`ProxyMedia`) | true | Media files are served under `/plugins/com.antimatterchat.gifs/media/` to signed-in users. When false, browsers load them from the service, which must then be reachable from them. |
 | Media URL (`MediaURL`) | service origin + `/media/` | Base URL of the media files to proxy, when they aren't served by the service itself (a CDN; `https://media.tenor.com/` for Tenor). |
-| Upload key (`UploadKey`) | empty | An upload key of antimatter-gifs (`AM_GIFS_UPLOAD_KEYS`). With it, users can add GIFs and stickers; stays on the server. When empty, `AM_GIFS_UPLOAD_KEY` is used. |
+| Upload key (`UploadKey`) | empty | An upload key of gifs-server (`AM_GIFS_UPLOAD_KEYS`). With it, users can add GIFs and stickers; stays on the server. When empty, `AM_GIFS_UPLOAD_KEY` is used. |
 | Who can add GIFs and stickers (`WhoCanUpload`) | admins | `admins` (system admins) or `everyone`. |
 | Cache size (`CacheSizeMB`) | 64 | Memory for cached answers and media files. |
 
@@ -66,7 +66,7 @@ Console. A value set in the System Console wins over the variable.
 services:
   antimatter:
     environment:
-      AM_GIFS_SERVICE_URL: http://antimatter-gifs:8080/v2
+      AM_GIFS_SERVICE_URL: http://gifs-server:8080/v2
       AM_GIFS_API_KEY: change-me          # one of the service's AM_GIFS_API_KEYS
       AM_GIFS_UPLOAD_KEY: change-me-too   # optional, one of its AM_GIFS_UPLOAD_KEYS
 ```

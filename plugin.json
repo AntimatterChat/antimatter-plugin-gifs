@@ -20,7 +20,7 @@
         "bundle_path": "webapp/dist/main.js"
     },
     "settings_schema": {
-        "header": "GIFs and stickers come from a GIF service with the Tenor API v2: the self-hosted [antimatter-gifs](https://github.com/antimatterchat/antimatter-gifs) service, or Tenor itself. Only the Antimatter server talks to the service: it proxies the searches and, by default, the media files.",
+        "header": "GIFs and stickers come from a GIF service with the Tenor API v2: the self-hosted [gifs-server](https://github.com/antimatterchat/gifs-server) service, or Tenor itself. Only the Antimatter server talks to the service: it proxies the searches and, by default, the media files.",
         "footer": "",
         "settings": [
             {
@@ -28,8 +28,8 @@
                 "display_name": "GIF service URL",
                 "type": "text",
                 "default": "",
-                "placeholder": "http://antimatter-gifs:8080/v2",
-                "help_text": "The base URL of the Tenor API v2 of the GIF service, e.g. http://antimatter-gifs:8080/v2 for antimatter-gifs or https://tenor.googleapis.com/v2 for Tenor. When empty, the AM_GIFS_SERVICE_URL environment variable of the server is used; GIFs are off while both are empty."
+                "placeholder": "http://gifs-server:8080/v2",
+                "help_text": "The base URL of the Tenor API v2 of the GIF service, e.g. http://gifs-server:8080/v2 for gifs-server or https://tenor.googleapis.com/v2 for Tenor. When empty, the AM_GIFS_SERVICE_URL environment variable of the server is used; GIFs are off while both are empty."
             },
             {
                 "key": "APIKey",
@@ -37,7 +37,7 @@
                 "type": "text",
                 "secret": true,
                 "default": "",
-                "help_text": "The API key of the GIF service (one of AM_GIFS_API_KEYS for antimatter-gifs). When empty, the AM_GIFS_API_KEY environment variable of the server is used. It stays on the server."
+                "help_text": "The API key of the GIF service (one of AM_GIFS_API_KEYS for gifs-server). When empty, the AM_GIFS_API_KEY environment variable of the server is used. It stays on the server."
             },
             {
                 "key": "EnableStickers",
@@ -83,7 +83,7 @@
                 "display_name": "Media URL",
                 "type": "text",
                 "default": "",
-                "placeholder": "http://antimatter-gifs:8080/media/",
+                "placeholder": "http://gifs-server:8080/media/",
                 "help_text": "The base URL of the media files the server proxies, when the service doesn't serve them itself (e.g. a CDN, or https://media.tenor.com/ for Tenor). By default, the service's address followed by /media/."
             },
             {
@@ -92,7 +92,7 @@
                 "type": "text",
                 "secret": true,
                 "default": "",
-                "help_text": "An upload key of the GIF service (one of AM_GIFS_UPLOAD_KEYS for antimatter-gifs). With it, users can add GIFs and stickers from the picker. When empty, the AM_GIFS_UPLOAD_KEY environment variable of the server is used; uploads are off while both are empty. It stays on the server."
+                "help_text": "An upload key of the GIF service (one of AM_GIFS_UPLOAD_KEYS for gifs-server). With it, users can add GIFs and stickers from the picker. When empty, the AM_GIFS_UPLOAD_KEY environment variable of the server is used; uploads are off while both are empty. It stays on the server."
             },
             {
                 "key": "WhoCanUpload",
