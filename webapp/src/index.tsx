@@ -16,6 +16,7 @@ import {messages} from './messages';
 import {closePicker, closeUpload, getClientConfig, loadConfig, openPicker, openUpload, resetFavorites} from './state';
 import type {GifsAPI, PluginClass, PluginRegistry, SlashCommandArgs, SlashCommandResult} from './types/host';
 import type {Kind} from './types/gifs';
+import {registerTranslations} from './translations';
 
 import './styles.css';
 
@@ -62,6 +63,8 @@ export function registerIntegrationsOptions(registry: PluginRegistry) {
 
 export default class Plugin implements PluginClass {
     public initialize(registry: PluginRegistry) {
+        registerTranslations(registry);
+
         if (window.basename) {
             Client4.setUrl(window.basename);
         }
