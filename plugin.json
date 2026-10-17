@@ -99,7 +99,7 @@
                 "display_name": "Who can add GIFs and stickers",
                 "type": "dropdown",
                 "default": "admins",
-                "help_text": "Who can add GIFs and stickers to the GIF service from the picker, when an upload key is set. They become available to everyone.",
+                "help_text": "Who can add GIFs and stickers to the GIF service from the picker, when an upload key is set. Everyone but guests, as with custom emoji. They become available to everyone; their uploaders and system admins can delete them.",
                 "options": [
                     {
                         "display_name": "System admins",
