@@ -109,6 +109,17 @@ describe('buttons', () => {
         expect(screen.queryByRole('button', {name: 'Manage GIFs'})).toBeNull();
     });
 
+    test('none for guests, even when the server would let everyone add', () => {
+        const {unmount} = renderWithProviders(<GifsTab {...props}/>, 'system_guest');
+        expect(screen.queryByRole('button', {name: 'Add a GIF'})).toBeNull();
+        expect(screen.queryByRole('button', {name: 'Manage GIFs'})).toBeNull();
+        unmount();
+
+        renderWithProviders(<StickersTab {...props}/>, 'system_guest');
+        expect(screen.queryByRole('button', {name: 'Add a sticker'})).toBeNull();
+        expect(screen.queryByRole('button', {name: 'Manage stickers'})).toBeNull();
+    });
+
     test('only manage for admins of a service that takes uploads from admins only', async () => {
         await withConfig({...member, can_upload: false, can_delete_others: true});
         renderWithProviders(<GifsTab {...props}/>);

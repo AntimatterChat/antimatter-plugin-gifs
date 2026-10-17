@@ -3,9 +3,11 @@
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import * as client from '../client';
 import {messages} from '../messages';
+import {isGuest} from '../roles';
 import {addedFavorite, removedFavorite, useClientConfig} from '../state';
 import type {ClientConfig, Item, Kind, UploadEntry} from '../types/gifs';
 import type {PickerKit, PickerListItem} from '../types/host';
@@ -45,8 +47,9 @@ export function tagsProblem(tags: string): 'too_many' | 'too_long' | '' {
 const maxBytesOf = (config: ClientConfig | null) => config?.upload_max_bytes || DEFAULT_MAX_BYTES;
 
 // canManage tells whether the manage view is of use to the person: they may add, or delete others'.
-export function canManage(config: ClientConfig | null, kind: Kind) {
-    return Boolean(config?.configured && (kind !== 'sticker' || config.stickers) && (config.can_upload || config.can_delete_others));
+// Never a guest's, as the server refuses guests.
+export function canManage(config: ClientConfig | null, kind: Kind, guest = false) {
+    return Boolean(!guest && config?.configured && (kind !== 'sticker' || config.stickers) && (config.can_upload || config.can_delete_others));
 }
 
 type PanelProps = {
@@ -66,6 +69,7 @@ type PanelProps = {
 export function PanelWithViews({kit, kind, channelId, rootId, query, onQuery, onPosted, onClose}: PanelProps) {
     const intl = useIntl();
     const config = useClientConfig();
+    const guest = useSelector(isGuest);
     const [view, open, back] = kit.usePickerView<'add' | 'manage'>();
     const [added, setAdded] = useState<Item | null>(null);
     const sticker = kind === 'sticker';
@@ -96,7 +100,7 @@ export function PanelWithViews({kit, kind, channelId, rootId, query, onQuery, on
         );
     }
 
-    const allowed = Boolean(config?.configured && (!sticker || config.stickers));
+    const allowed = Boolean(!guest && config?.configured && (!sticker || config.stickers));
     return (
         <PickerPanel
             kind={kind}
@@ -112,7 +116,7 @@ export function PanelWithViews({kit, kind, channelId, rootId, query, onQuery, on
             tools={(
                 <kit.PickerViewButtons
                     onAdd={allowed && config?.can_upload ? () => open('add') : undefined}
-                    onManage={canManage(config, kind) ? () => open('manage') : undefined}
+                    onManage={canManage(config, kind, guest) ? () => open('manage') : undefined}
                     addLabel={intl.formatMessage(sticker ? messages.addSticker : messages.addGif)}
                     manageLabel={intl.formatMessage(sticker ? messages.manageStickers : messages.manageGifs)}
                 />

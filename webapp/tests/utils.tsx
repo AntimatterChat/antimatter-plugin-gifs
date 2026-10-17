@@ -16,9 +16,9 @@ const state = {
     },
 };
 
-// renderWithProviders renders like the host: with its Intl and Redux providers.
-export function renderWithProviders(ui: React.ReactElement) {
-    const store = createStore(() => state);
+// renderWithProviders renders like the host: with its Intl and Redux providers, as a user of the given roles.
+export function renderWithProviders(ui: React.ReactElement, roles = 'system_user') {
+    const store = createStore(() => ({...state, entities: {...state.entities, users: {...state.entities.users, profiles: {user1: {...state.entities.users.profiles.user1, roles}}}}}));
     return render(
         <Provider store={store}>
             <IntlProvider locale='en'>{ui}</IntlProvider>

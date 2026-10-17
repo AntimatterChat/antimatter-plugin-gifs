@@ -141,12 +141,29 @@ func (p *Plugin) handleGetConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 // canUpload tells whether a user can add GIFs and stickers: the service takes uploads, and the
-// user is a system admin unless everyone may add them.
+// user is a system admin unless everyone may add them. "Everyone" leaves guests out, as custom
+// emoji do: guests neither add nor delete GIFs and stickers.
 func (p *Plugin) canUpload(userID string) bool {
 	if !p.getService().canUpload() {
 		return false
 	}
-	return p.getConfiguration().everyoneCanUpload() || p.isAdmin(userID)
+	if p.isAdmin(userID) {
+		return true
+	}
+	return p.getConfiguration().everyoneCanUpload() && !p.isGuest(userID)
+}
+
+// isGuest tells whether a user is a guest account. When the account can't be read, the user
+// counts as one: nothing is allowed that wouldn't be for a guest.
+func (p *Plugin) isGuest(userID string) bool {
+	user, appErr := p.API.GetUser(userID)
+	if appErr != nil || user == nil {
+		if appErr != nil {
+			p.API.LogWarn("Failed to get the user to check their role", "user_id", userID, "err", appErr.Error())
+		}
+		return true
+	}
+	return user.IsGuest()
 }
 
 // uploadText reads a text field of an upload, checking its length.

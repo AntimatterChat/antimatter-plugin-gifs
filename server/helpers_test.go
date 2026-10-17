@@ -263,6 +263,9 @@ type testEnv struct {
 	api     *plugintest.API
 	kv      *fakeKV
 	service *fakeService
+
+	// The accounts GetUser returns; the others are members (system_user).
+	users map[string]*model.User
 }
 
 const (
@@ -274,7 +277,13 @@ const (
 // newTestEnv sets up the plugin with a fake GIF service; change edits the configuration.
 func newTestEnv(t *testing.T, change func(c *configuration)) *testEnv {
 	t.Helper()
-	env := &testEnv{api: &plugintest.API{}, kv: newFakeKV(), service: newFakeService(t)}
+	env := &testEnv{api: &plugintest.API{}, kv: newFakeKV(), service: newFakeService(t), users: map[string]*model.User{}}
+	env.api.On("GetUser", mock.Anything).Return(func(id string) (*model.User, *model.AppError) {
+		if u, ok := env.users[id]; ok {
+			return u, nil
+		}
+		return &model.User{Id: id, Roles: model.SystemUserRoleId}, nil
+	}).Maybe()
 	for _, level := range []string{"LogDebug", "LogInfo", "LogWarn", "LogError"} {
 		for n := 1; n <= 7; n += 2 {
 			args := make([]any, n)

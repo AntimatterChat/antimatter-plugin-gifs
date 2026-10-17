@@ -155,8 +155,8 @@ func (p *Plugin) isAdmin(userID string) bool {
 	return p.API.HasPermissionTo(userID, model.PermissionManageSystem)
 }
 
-// canDeleteUpload tells whether a user may delete an upload: their own while they may upload,
-// anyone's for system admins. Nobody can while the service takes no uploads.
+// canDeleteUpload tells whether a user may delete an upload: their own while they may upload (so
+// never a guest), anyone's for system admins. Nobody can while the service takes no uploads.
 func (p *Plugin) canDeleteUpload(userID string, up Upload) bool {
 	if !p.getService().canUpload() {
 		return false

@@ -12,8 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// The people of the permission tests. The plugin knows system admins by manage_system; members
-// and guests are both people without it (guests may upload too when everyone may).
+// The people of the permission tests. The plugin knows system admins by manage_system, and guests
+// by their account's system_guest role: like custom emoji, guests neither add nor delete GIFs and
+// stickers, even when everyone may.
 const (
 	otherUserID = "oooooooooooooooooooooooooo"
 	adminUserID = "aaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -25,8 +26,9 @@ func (env *testEnv) withPeople() *testEnv {
 	for user, admin := range map[string]bool{testUserID: false, otherUserID: false, guestUserID: false, adminUserID: true} {
 		env.api.On("HasPermissionTo", user, model.PermissionManageSystem).Return(admin).Maybe()
 	}
+	roles := map[string]string{testUserID: model.SystemUserRoleId, otherUserID: model.SystemUserRoleId, guestUserID: model.SystemGuestRoleId, adminUserID: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	for user, name := range map[string]string{testUserID: "maya", otherUserID: "nina", guestUserID: "gus", adminUserID: "root"} {
-		env.api.On("GetUser", user).Return(&model.User{Id: user, Username: name}, nil).Maybe()
+		env.users[user] = &model.User{Id: user, Username: name, Roles: roles[user]}
 	}
 	return env
 }
@@ -89,7 +91,7 @@ func TestUploadsAreListed(t *testing.T) {
 }
 
 // TestUploadAndDeletePermissions checks who may add and delete GIFs and stickers, for each kind:
-// members, guests and admins, with uploads open to everyone or to admins only.
+// members, guests and admins, with uploads open to everyone or to admins only. Guests never may.
 func TestUploadAndDeletePermissions(t *testing.T) {
 	for _, kind := range []string{kindGIF, kindSticker} {
 		t.Run(kind, func(t *testing.T) {
@@ -100,18 +102,33 @@ func TestUploadAndDeletePermissions(t *testing.T) {
 
 			t.Run("everyone may upload", func(t *testing.T) {
 				env := newTestEnv(t, withUploads("everyone")).withPeople()
+
+				// The guest was a member when they added theirs.
+				env.users[guestUserID].Roles = model.SystemUserRoleId
 				require.Equal(t, http.StatusOK, env.doUploadAs(t, testUserID, fields("Member's"), []byte("GIF89a")).Code) // up1
 				require.Equal(t, http.StatusOK, env.doUploadAs(t, guestUserID, fields("Guest's"), []byte("GIF89a")).Code) // up2
 				require.Equal(t, http.StatusOK, env.doUploadAs(t, otherUserID, fields("Other's"), []byte("GIF89a")).Code) // up3
+				env.users[guestUserID].Roles = model.SystemGuestRoleId
 
-				// A member can't delete someone else's, nor a guest.
-				assert.Equal(t, http.StatusForbidden, del(env, testUserID, "up3"))
+				// "Everyone" isn't guests: they neither add nor delete, not even their own.
+				assert.Equal(t, http.StatusForbidden, env.doUploadAs(t, guestUserID, fields("Guest's again"), []byte("GIF89a")).Code)
+				cfg := decode[ClientConfig](t, env.do(t, http.MethodGet, "/api/v1/config", guestUserID, nil))
+				assert.False(t, cfg.CanUpload)
+				assert.False(t, cfg.CanDeleteOthers)
+				assert.Equal(t, http.StatusForbidden, del(env, guestUserID, "up2"))
 				assert.Equal(t, http.StatusForbidden, del(env, guestUserID, "up1"))
+				for _, e := range env.listUploads(t, guestUserID, "kind="+kind).Uploads {
+					assert.False(t, e.CanDelete, e.ID)
+				}
+
+				// A member can't delete someone else's.
+				assert.Equal(t, http.StatusForbidden, del(env, testUserID, "up3"))
 				assert.Empty(t, env.service.deletedIDs())
 
-				// Each deletes their own; an admin anyone's.
+				// Members delete their own; an admin anyone's, a guest's too.
+				assert.True(t, decode[ClientConfig](t, env.do(t, http.MethodGet, "/api/v1/config", testUserID, nil)).CanUpload)
 				assert.Equal(t, http.StatusNoContent, del(env, testUserID, "up1"))
-				assert.Equal(t, http.StatusNoContent, del(env, guestUserID, "up2"))
+				assert.Equal(t, http.StatusNoContent, del(env, adminUserID, "up2"))
 				assert.Equal(t, http.StatusNoContent, del(env, adminUserID, "up3"))
 				assert.Equal(t, []string{"up1", "up2", "up3"}, env.service.deletedIDs())
 				assert.Empty(t, ids(env.listUploads(t, testUserID, "kind="+kind)))
