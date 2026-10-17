@@ -154,3 +154,12 @@
   :is(.am-app, .am-layer) .amgifs-add-preview-gif .amgifs-add-preview-message { width: 120px; }
   :is(.am-app, .am-layer) .amgifs-add-preview-sticker .amgifs-add-preview-message { width: 96px; height: 96px; }
 }
+/* In the drop zone of the picker's add view (the host's PickerDropZone), the two sizes keep their proportions but
+   stay as low as the zone, so that the view fits the picker without scrolling: media up to 56px, captions under. */
+:is(.am-app, .am-layer) .am-pv-drop .amgifs-add-preview { gap: 8px; }
+:is(.am-app, .am-layer) .am-pv-drop .amgifs-add-preview figure { gap: 2px; }
+:is(.am-app, .am-layer) .am-pv-drop .amgifs-add-preview figcaption { font-size: 10.5px; line-height: 12px; }
+:is(.am-app, .am-layer) .am-pv-drop .amgifs-add-preview-gif .amgifs-add-preview-picker { width: 42px; max-height: 56px; }
+:is(.am-app, .am-layer) .am-pv-drop .amgifs-add-preview-gif .amgifs-add-preview-message { width: 100px; max-height: 56px; }
+:is(.am-app, .am-layer) .am-pv-drop .amgifs-add-preview-sticker .amgifs-add-preview-picker { width: 32px; height: 32px; }
+:is(.am-app, .am-layer) .am-pv-drop .amgifs-add-preview-sticker .amgifs-add-preview-message { width: 56px; height: 56px; }
