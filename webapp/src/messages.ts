@@ -58,6 +58,7 @@ export const messages = defineMessages({
     uploadDone: {id: 'gifs.upload.done', defaultMessage: 'Added! It’s in your favorites.'},
     uploadSend: {id: 'gifs.upload.send', defaultMessage: 'Send it'},
     uploadClose: {id: 'gifs.upload.close', defaultMessage: 'Done'},
+
     // The in-picker add and manage views of the Fusion picker (with the host's picker kit).
     manageGifs: {id: 'gifs.manage.gifs', defaultMessage: 'Manage GIFs', description: 'Button next to the GIF search box, and title of the in-picker view listing the GIFs people added.'},
     manageStickers: {id: 'gifs.manage.stickers', defaultMessage: 'Manage stickers', description: 'Button next to the sticker search box, and title of the in-picker view listing the stickers people added.'},

@@ -334,7 +334,7 @@ function StickerTab({k, fusion, locale, onSend, query}: Common & {query: string}
 
 // JustAdded shows what was just added in the picker above the grid, with the focus on it, so that
 // Enter sends it.
-function JustAdded({item, onSend, onDismiss}: {item: Item; onSend: (item: Item) => void; onDismiss?: () => void}) {
+function JustAdded({item, onSend, onDismiss}: {item: Item; onSend: (sent: Item) => void; onDismiss?: () => void}) {
     const intl = useIntl();
     const ref = useRef<HTMLButtonElement>(null);
     useEffect(() => {

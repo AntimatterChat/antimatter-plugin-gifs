@@ -47,7 +47,8 @@ async function request<T>(method: string, url: string, body?: unknown): Promise<
         throw new ClientError(message, response.status);
     }
     if (response.status === 204) {
-        return undefined as T;
+        // No content: the request resolves with nothing.
+        return Promise.resolve() as unknown as Promise<T>;
     }
     return response.json();
 }
