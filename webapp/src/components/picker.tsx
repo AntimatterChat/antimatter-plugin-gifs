@@ -15,6 +15,7 @@ import {isFavorite, loadFavorites, toggleFavorite, useClientConfig, useFavorites
 import type {Item, Kind} from '../types/gifs';
 import {classNames} from '../web_ui';
 
+import {iconTip, tip} from './fusion/tip';
 import {useDebounced, useLoad, usePagedList} from './hooks';
 import {SearchIcon, StarIcon} from './icons';
 import MediaView from './media_view';
@@ -54,8 +55,7 @@ function FavoriteButton({item, k, fusion, small}: {item: Item; k: ClassNames; fu
             type='button'
             className={k('gif-star', on && 'on') + (small ? ' amgifs-star-small' : '')}
             aria-pressed={on}
-            aria-label={label}
-            title={label}
+            {...iconTip(label)}
             onClick={(e) => {
                 e.stopPropagation();
                 toggleFavorite(item).catch(() => null);
@@ -77,7 +77,7 @@ function GifCell({item, k, fusion, onSend}: Omit<Common, 'locale'> & {item: Item
                 className={k('gif-tile')}
                 style={{[heightVar]: `${tileHeight(item)}px`} as React.CSSProperties}
                 aria-label={intl.formatMessage(messages.sendGif, {title})}
-                title={title}
+                {...tip(title)}
                 onClick={() => onSend(item)}
             >
                 <MediaView
@@ -105,7 +105,7 @@ function StickerCell({item, k, fusion, onSend}: Omit<Common, 'locale'> & {item: 
                 type='button'
                 className={k('sticker')}
                 aria-label={intl.formatMessage(messages.sendSticker, {title})}
-                title={title}
+                {...(title ? tip(title) : {})}
                 onClick={() => onSend(item)}
             >
                 <MediaView
@@ -334,7 +334,7 @@ function StickerTab({k, fusion, locale, onSend, query}: Common & {query: string}
 
 // JustAdded shows what was just added in the picker above the grid, with the focus on it, so that
 // Enter sends it.
-function JustAdded({item, onSend, onDismiss}: {item: Item; onSend: (item: Item) => void; onDismiss?: () => void}) {
+function JustAdded({item, onSend, onDismiss}: {item: Item; onSend: (sent: Item) => void; onDismiss?: () => void}) {
     const intl = useIntl();
     const ref = useRef<HTMLButtonElement>(null);
     useEffect(() => {
@@ -351,7 +351,7 @@ function JustAdded({item, onSend, onDismiss}: {item: Item; onSend: (item: Item) 
                 type='button'
                 className='amgifs-just-added-thumb'
                 aria-label={intl.formatMessage(item.kind === 'sticker' ? messages.sendSticker : messages.sendGif, {title})}
-                title={title}
+                {...tip(title)}
                 onClick={() => onSend(item)}
             >
                 <MediaView
@@ -365,8 +365,7 @@ function JustAdded({item, onSend, onDismiss}: {item: Item; onSend: (item: Item) 
                 <button
                     type='button'
                     className='amgifs-just-added-close'
-                    aria-label={intl.formatMessage(messages.justAddedDismiss)}
-                    title={intl.formatMessage(messages.justAddedDismiss)}
+                    {...iconTip(intl.formatMessage(messages.justAddedDismiss))}
                     onClick={onDismiss}
                 >
                     {'×'}

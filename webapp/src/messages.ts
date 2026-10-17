@@ -43,6 +43,8 @@ export const messages = defineMessages({
     uploadGifLead: {id: 'gifs.upload.gif_lead', defaultMessage: 'A GIF, PNG, WebP, MP4 or WebM file up to 16 MB. Everyone can find it once it’s added.'},
     uploadStickerLead: {id: 'gifs.upload.sticker_lead', defaultMessage: 'A PNG, WebP, GIF or SVG file up to 16 MB, ideally with a transparent background. Everyone can find it once it’s added.'},
     uploadFile: {id: 'gifs.upload.file', defaultMessage: 'File'},
+    uploadChoose: {id: 'gifs.upload.choose', defaultMessage: 'Choose a file', description: 'Button of the File field of the dialog adding a GIF or sticker (Fusion UI), opening the file chooser.'},
+    uploadChange: {id: 'gifs.upload.change', defaultMessage: 'Choose another file', description: 'The same button once a file is chosen; the file name shows next to it.'},
     uploadTitle: {id: 'gifs.upload.title', defaultMessage: 'Title'},
     uploadTags: {id: 'gifs.upload.tags', defaultMessage: 'Tags'},
     uploadTagsHint: {id: 'gifs.upload.tags_hint', defaultMessage: 'Separated by commas: they help people find it.'},
@@ -56,6 +58,7 @@ export const messages = defineMessages({
     uploadDone: {id: 'gifs.upload.done', defaultMessage: 'Added! It’s in your favourites.'},
     uploadSend: {id: 'gifs.upload.send', defaultMessage: 'Send it'},
     uploadClose: {id: 'gifs.upload.close', defaultMessage: 'Done'},
+
     // The in-picker add and manage views of the Fusion picker (with the host's picker kit).
     manageGifs: {id: 'gifs.manage.gifs', defaultMessage: 'Manage GIFs', description: 'Button next to the GIF search box, and title of the in-picker view listing the GIFs people added.'},
     manageStickers: {id: 'gifs.manage.stickers', defaultMessage: 'Manage stickers', description: 'Button next to the sticker search box, and title of the in-picker view listing the stickers people added.'},

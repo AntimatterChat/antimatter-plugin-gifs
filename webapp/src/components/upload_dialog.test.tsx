@@ -127,3 +127,50 @@ test('uses the Fusion dialog markup in its layer', () => {
     expect(dialog.parentElement).toHaveClass('am-scrim');
     expect(dialog.parentElement?.parentElement).toHaveClass('am-layer');
 });
+
+test('under Fusion, the file field is a Fusion button over the browser\'s input', () => {
+    window.antimatterWebUI = 'fusion';
+    renderWithProviders(<UploadDialogRoot/>);
+    act(() => openUpload({kind: 'gif', channelId: 'channel1'}));
+
+    // The input is still the field's control, out of sight behind the button.
+    const input = screen.getByLabelText('File');
+    expect(input).toHaveAttribute('type', 'file');
+    expect(input).toHaveClass('amgifs-file-input');
+    const button = input.parentElement!.querySelector('.amgifs-file-btn')!;
+    expect(button).toHaveClass('am-btn');
+    expect(button).toHaveAttribute('aria-hidden', 'true');
+    expect(button).toHaveTextContent('Choose a file');
+    expect(button.querySelector('use')).toHaveAttribute('href', '#am-i-upload');
+    expect(input.closest('label')).toHaveClass('am-field');
+
+    chooseFile('happy_cat.gif');
+    expect(button).toHaveTextContent('Choose another file');
+    expect(screen.getByText('happy_cat.gif')).toHaveClass('amgifs-file-name');
+    expect(screen.getByLabelText('Title')).toHaveValue('Happy cat');
+});
+
+test('under the classic UI, the file field is the browser\'s input, as before', () => {
+    renderWithProviders(<UploadDialogRoot/>);
+    act(() => openUpload({kind: 'gif', channelId: 'channel1'}));
+    const input = screen.getByLabelText('File');
+    expect(input).not.toHaveClass('amgifs-file-input');
+    expect(document.querySelector('.amgifs-file-btn')).toBeNull();
+});
+
+test('the add button has Fusion\'s tooltip under Fusion', async () => {
+    window.antimatterWebUI = 'fusion';
+    renderWithProviders(
+        <GifsTab
+            channelId='channel1'
+            filter=''
+            onFilterChange={jest.fn()}
+            onSelectDone={jest.fn()}
+            isFusion={true}
+        />,
+    );
+    const add = await screen.findByRole('button', {name: 'Add a GIF'});
+    expect(add).toHaveAttribute('data-am-tip', 'Add a GIF');
+    expect(add).not.toHaveAttribute('title');
+    expect(add.querySelector('use')).toHaveAttribute('href', '#am-i-plus');
+});

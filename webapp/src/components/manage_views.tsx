@@ -115,8 +115,8 @@ export function PanelWithViews({kit, kind, channelId, rootId, query, onQuery, on
             onDismissAdded={() => setAdded(null)}
             tools={(
                 <kit.PickerViewButtons
-                    onAdd={allowed && config?.can_upload ? () => open('add') : undefined}
-                    onManage={canManage(config, kind, guest) ? () => open('manage') : undefined}
+                    {...(allowed && config?.can_upload ? {onAdd: () => open('add')} : {})}
+                    {...(canManage(config, kind, guest) ? {onManage: () => open('manage')} : {})}
                     addLabel={intl.formatMessage(sticker ? messages.addSticker : messages.addGif)}
                     manageLabel={intl.formatMessage(sticker ? messages.manageStickers : messages.manageGifs)}
                 />
@@ -264,17 +264,19 @@ export function AddView({kit, kind, config, onBack, onAdded}: AddProps) {
                 label={intl.formatMessage(messages.addDrop)}
                 changeLabel={intl.formatMessage(messages.addChange)}
                 hint={intl.formatMessage(sticker ? messages.addStickerHint : messages.addGifHint, {size: sizeMB})}
-                error={fileError || undefined}
-                preview={file && !fileError ? (
-                    <FilePreview
-                        file={file}
-                        kind={kind}
-                    />
-                ) : undefined}
+                {...(fileError ? {error: fileError} : {})}
+                {...(file && !fileError ? {
+                    preview: (
+                        <FilePreview
+                            file={file}
+                            kind={kind}
+                        />
+                    ),
+                } : {})}
             />
             <kit.PickerField
                 label={intl.formatMessage(messages.uploadTitle)}
-                error={titleError || undefined}
+                {...(titleError ? {error: titleError} : {})}
                 aside={`${Array.from(cleanTitle).length}/100`}
             >
                 {({id, describedBy, invalid}) => (
@@ -297,7 +299,7 @@ export function AddView({kit, kind, config, onBack, onAdded}: AddProps) {
             <kit.PickerField
                 label={intl.formatMessage(messages.uploadTags)}
                 hint={intl.formatMessage(messages.uploadTagsHint)}
-                error={tagsError || undefined}
+                {...(tagsError ? {error: tagsError} : {})}
             >
                 {({id, describedBy, invalid}) => (
                     <input
@@ -316,7 +318,7 @@ export function AddView({kit, kind, config, onBack, onAdded}: AddProps) {
                 <kit.PickerField
                     label={intl.formatMessage(messages.uploadPack)}
                     hint={intl.formatMessage(messages.uploadPackHint)}
-                    error={packError || undefined}
+                    {...(packError ? {error: packError} : {})}
                 >
                     {({id, describedBy, invalid}) => (
                         <>
@@ -349,6 +351,12 @@ export function AddView({kit, kind, config, onBack, onAdded}: AddProps) {
 
 const PER_PAGE = 30;
 
+// appendNew adds a page of uploads to those listed, leaving out any already there.
+function appendNew(listed: UploadEntry[], page: UploadEntry[]): UploadEntry[] {
+    const ids = new Set(listed.map((u) => u.id));
+    return [...listed, ...page.filter((u) => !ids.has(u.id))];
+}
+
 type ManageProps = {
     kit: PickerKit;
     kind: Kind;
@@ -378,7 +386,7 @@ export function ManageView({kit, kind, onBack}: ManageProps) {
             if (termRef.current !== forTerm) {
                 return;
             }
-            setEntries((prev) => (forPage === 0 ? list.uploads : [...prev, ...list.uploads.filter((u) => !prev.some((p) => p.id === u.id))]));
+            setEntries((prev) => (forPage === 0 ? list.uploads : appendNew(prev, list.uploads)));
             setHasMore(list.has_more);
             setPage(forPage);
         } catch (err) {
@@ -408,11 +416,12 @@ export function ManageView({kit, kind, onBack}: ManageProps) {
                 className='amgifs-contain'
             />
         ) : null,
-        by: e.username ? '@' + e.username : undefined,
-        at: e.created_at || undefined,
+        ...(e.username ? {by: '@' + e.username} : {}),
+        ...(e.created_at ? {at: e.created_at} : {}),
         canDelete: e.can_delete,
     }));
 
+    // What went wrong, or nothing ('') once deleted.
     const onDelete = async (item: PickerListItem) => {
         try {
             await client.deleteUpload(kind, item.id);
@@ -421,7 +430,7 @@ export function ManageView({kit, kind, onBack}: ManageProps) {
         }
         setEntries((prev) => prev.filter((e) => e.id !== item.id));
         removedFavorite(kind, item.id);
-        return undefined;
+        return '';
     };
 
     let empty = intl.formatMessage(sticker ? messages.manageEmptyStickers : messages.manageEmpty);

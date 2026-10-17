@@ -103,6 +103,38 @@ test('lists the sticker packs under Fusion', async () => {
     expect(getPicker()).toBeNull();
 });
 
+test('under Fusion, its tooltips and icons are Fusion\'s', async () => {
+    window.antimatterWebUI = 'fusion';
+    renderWithProviders(<PickerRoot/>);
+    act(() => openPicker({channelId: 'channel1'}));
+    const gif = await screen.findByRole('button', {name: 'Send GIF: Dance'});
+    expect(gif).toHaveAttribute('data-am-tip', 'Dance');
+    expect(gif).not.toHaveAttribute('title');
+    const [star] = screen.getAllByRole('button', {name: 'Add to favorites'});
+    expect(star).toHaveAttribute('data-am-tip', 'Add to favorites');
+    expect(star).not.toHaveAttribute('title');
+    expect(star.querySelector('use')).toHaveAttribute('href', '#am-i-star');
+    expect(screen.getByRole('dialog').querySelector('[title]')).toBeNull();
+
+    // The search box's icon too: the sprite's, not a drawing of the app's own.
+    const search = screen.getByLabelText('Search GIFs').parentElement!.querySelector('svg')!;
+    expect(search.querySelector('use')).toHaveAttribute('href', '#am-i-search');
+    expect(search.querySelector('path, circle')).toBeNull();
+});
+
+test('under the classic UI, keeps the browser\'s tooltips and its own icons', async () => {
+    renderWithProviders(<PickerRoot/>);
+    act(() => openPicker({channelId: 'channel1'}));
+    const gif = await screen.findByRole('button', {name: 'Send GIF: Dance'});
+    expect(gif).toHaveAttribute('title', 'Dance');
+    expect(gif).not.toHaveAttribute('data-am-tip');
+    const [star] = screen.getAllByRole('button', {name: 'Add to favorites'});
+    expect(star).toHaveAttribute('title', 'Add to favorites');
+    expect(star.querySelector('use')).toBeNull();
+    expect(star.querySelector('path')).not.toBeNull();
+    expect(document.querySelector('[data-am-tip]')).toBeNull();
+});
+
 test('says when GIFs are not set up', async () => {
     mocked.getConfig.mockResolvedValue({configured: false, stickers: false});
     await loadConfig();

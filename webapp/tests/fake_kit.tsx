@@ -1,6 +1,9 @@
 // Copyright (c) 2026-present Antimatter contributors.
 // See LICENSE.txt for license information.
 
+// The kit's props are typed by PickerKit; prop-types adds nothing to a test double.
+/* eslint-disable react/prop-types */
+
 import React, {useCallback, useId, useState} from 'react';
 
 import type {PickerKit, PickerListItem} from '../src/types/host';
