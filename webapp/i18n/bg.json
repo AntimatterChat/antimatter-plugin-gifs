@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Добавяне на GIF",
   "gifs.upload.add_sticker": "Добавяне на стикер",
   "gifs.upload.cancel": "Отказ",
+  "gifs.upload.change": "Изберете друг файл",
+  "gifs.upload.choose": "Изберете файл",
   "gifs.upload.close": "Готово",
   "gifs.upload.done": "Добавено! Намира се в Любимите ви.",
   "gifs.upload.failed": "Неуспешно добавяне: {error}",

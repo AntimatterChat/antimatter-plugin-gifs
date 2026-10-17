@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIF hozzáadása",
   "gifs.upload.add_sticker": "Matrica hozzáadása",
   "gifs.upload.cancel": "Mégse",
+  "gifs.upload.change": "Másik fájl kiválasztása",
+  "gifs.upload.choose": "Fájl kiválasztása",
   "gifs.upload.close": "Kész",
   "gifs.upload.done": "Hozzáadva! A kedvencek között találod.",
   "gifs.upload.failed": "Nem sikerült hozzáadni: {error}",

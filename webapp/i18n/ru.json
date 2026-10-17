@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Добавить GIF",
   "gifs.upload.add_sticker": "Добавить стикер",
   "gifs.upload.cancel": "Отмена",
+  "gifs.upload.change": "Выбрать другой файл",
+  "gifs.upload.choose": "Выбрать файл",
   "gifs.upload.close": "Готово",
   "gifs.upload.done": "Добавлено! Теперь его можно найти в избранном.",
   "gifs.upload.failed": "Не удалось добавить: {error}",

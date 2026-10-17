@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIF toevoegen",
   "gifs.upload.add_sticker": "Sticker toevoegen",
   "gifs.upload.cancel": "Annuleren",
+  "gifs.upload.change": "Een ander bestand kiezen",
+  "gifs.upload.choose": "Een bestand kiezen",
   "gifs.upload.close": "Klaar",
   "gifs.upload.done": "Toegevoegd! Het staat in je favorieten.",
   "gifs.upload.failed": "Kon niet worden toegevoegd: {error}",

@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Tambah GIF",
   "gifs.upload.add_sticker": "Tambah pelekat",
   "gifs.upload.cancel": "Batal",
+  "gifs.upload.change": "Pilih fail lain",
+  "gifs.upload.choose": "Pilih fail",
   "gifs.upload.close": "Selesai",
   "gifs.upload.done": "Ditambah! Ia ada dalam Kegemaran anda.",
   "gifs.upload.failed": "Tidak dapat menambah: {error}",

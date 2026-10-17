@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Legg til en GIF",
   "gifs.upload.add_sticker": "Legg til et klistermerke",
   "gifs.upload.cancel": "Avbryt",
+  "gifs.upload.change": "Velg en annen fil",
+  "gifs.upload.choose": "Velg en fil",
   "gifs.upload.close": "Ferdig",
   "gifs.upload.done": "Lagt til! Det er i favorittene dine.",
   "gifs.upload.failed": "Kunne ikke legge det til: {error}",

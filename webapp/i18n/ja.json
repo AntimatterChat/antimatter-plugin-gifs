@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIFを追加",
   "gifs.upload.add_sticker": "ステッカーを追加",
   "gifs.upload.cancel": "キャンセル",
+  "gifs.upload.change": "別のファイルを選択",
+  "gifs.upload.choose": "ファイルを選択",
   "gifs.upload.close": "完了",
   "gifs.upload.done": "追加しました！お気に入りに登録されています。",
   "gifs.upload.failed": "追加できません: {error}",

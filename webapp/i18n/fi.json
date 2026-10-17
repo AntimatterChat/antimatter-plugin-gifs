@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Lisää GIF",
   "gifs.upload.add_sticker": "Lisää tarrakuvake",
   "gifs.upload.cancel": "Peruuta",
+  "gifs.upload.change": "Valitse toinen tiedosto",
+  "gifs.upload.choose": "Valitse tiedosto",
   "gifs.upload.close": "Valmis",
   "gifs.upload.done": "Lisätty! Se on nyt suosikeissasi.",
   "gifs.upload.failed": "Lisäys epäonnistui: {error}",

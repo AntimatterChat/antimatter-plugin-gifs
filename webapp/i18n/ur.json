@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIF شامل کریں",
   "gifs.upload.add_sticker": "اسٹیکر شامل کریں",
   "gifs.upload.cancel": "منسوخ کریں",
+  "gifs.upload.change": "دوسری فائل منتخب کریں",
+  "gifs.upload.choose": "فائل منتخب کریں",
   "gifs.upload.close": "مکمل",
   "gifs.upload.done": "شامل کر دیا گیا! یہ آپ کے پسندیدہ میں موجود ہے۔",
   "gifs.upload.failed": "شامل نہیں کیا جا سکا: {error}",

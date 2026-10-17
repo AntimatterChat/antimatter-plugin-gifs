@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIF ekle",
   "gifs.upload.add_sticker": "Çıkartma ekle",
   "gifs.upload.cancel": "İptal",
+  "gifs.upload.change": "Başka bir dosya seç",
+  "gifs.upload.choose": "Dosya seç",
   "gifs.upload.close": "Tamam",
   "gifs.upload.done": "Eklendi! Favorilerinde.",
   "gifs.upload.failed": "Eklenemedi: {error}",

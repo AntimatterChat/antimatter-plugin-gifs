@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "เพิ่ม GIF",
   "gifs.upload.add_sticker": "เพิ่มสติ๊กเกอร์",
   "gifs.upload.cancel": "ยกเลิก",
+  "gifs.upload.change": "เลืกไฟล์อืน",
+  "gifs.upload.choose": "เลืกไฟล์",
   "gifs.upload.close": "เสร็จแล้ว",
   "gifs.upload.done": "เพิ่มแล้ว! อยู๋ในรายการโปรดของคุณแล้ว",
   "gifs.upload.failed": "ไม่สามารถเพิ่่มได: {error}",

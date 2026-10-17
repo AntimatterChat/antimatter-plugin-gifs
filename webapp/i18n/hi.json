@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIF जोड़ें",
   "gifs.upload.add_sticker": "स्टिकर जोड़ें",
   "gifs.upload.cancel": "रद्द करें",
+  "gifs.upload.change": "एक अलग फ़ाइल चुनें",
+  "gifs.upload.choose": "एक फ़ाइल चुनें",
   "gifs.upload.close": "पूर्ण",
   "gifs.upload.done": "जोड़ा गया! यह आपके पसंदीदा में है।",
   "gifs.upload.failed": "जोड़ने में असमर्थ: {error}",

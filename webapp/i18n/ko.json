@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIF 추가",
   "gifs.upload.add_sticker": "스티커 추가",
   "gifs.upload.cancel": "취소",
+  "gifs.upload.change": "다른 파일 선택",
+  "gifs.upload.choose": "파일 선택",
   "gifs.upload.close": "완료",
   "gifs.upload.done": "추가되었습니다! 즐겨찾기에 있습니다.",
   "gifs.upload.failed": "추가할 수 없습니다: {error}",

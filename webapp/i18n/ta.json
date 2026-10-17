@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIF சேர்",
   "gifs.upload.add_sticker": "ஸ்டிக்கர் சேர்",
   "gifs.upload.cancel": "ரத்து செய்",
+  "gifs.upload.change": "வேறொரு கோப்பை தேர்ந்தெடுக்கவும்",
+  "gifs.upload.choose": "ஒரு கோப்பை தேர்ந்தெடுக்கவும்",
   "gifs.upload.close": "முடிந்தது",
   "gifs.upload.done": "சேர்க்கப்பட்டது! இது உங்கள் விரும்பியவற்றில் உள்ளது.",
   "gifs.upload.failed": "சேர்க்க முடியவில்லை: {error}",

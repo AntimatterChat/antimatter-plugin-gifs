@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "הוספת GIF",
   "gifs.upload.add_sticker": "הוספת סטיקר",
   "gifs.upload.cancel": "ביטול",
+  "gifs.upload.change": "בחירת קובץ אחר",
+  "gifs.upload.choose": "בחירת קובץ",
   "gifs.upload.close": "סיום",
   "gifs.upload.done": "נוסף! זה נמצא במועדפים שלך.",
   "gifs.upload.failed": "לא ניתן להוסיף: {error}",

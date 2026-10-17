@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Afegeix un GIF",
   "gifs.upload.add_sticker": "Afegeix un adhesiu",
   "gifs.upload.cancel": "Cancel·la",
+  "gifs.upload.change": "Tria un altre fitxer",
+  "gifs.upload.choose": "Tria un fitxer",
   "gifs.upload.close": "Fet",
   "gifs.upload.done": "S’ha afegit! És als teus preferits.",
   "gifs.upload.failed": "No s’ha pogut afegir: {error}",

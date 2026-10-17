@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Tambahkan GIF",
   "gifs.upload.add_sticker": "Tambahkan stiker",
   "gifs.upload.cancel": "Batal",
+  "gifs.upload.change": "Pilih file lain",
+  "gifs.upload.choose": "Pilih file",
   "gifs.upload.close": "Selesai",
   "gifs.upload.done": "Ditambahkan! Ada di Favorit Anda.",
   "gifs.upload.failed": "Gagal menambahkan: {error}",

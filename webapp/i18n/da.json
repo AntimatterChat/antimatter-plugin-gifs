@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Tilføj en GIF",
   "gifs.upload.add_sticker": "Tilføj en sticker",
   "gifs.upload.cancel": "Annuller",
+  "gifs.upload.change": "Vælg en anden fil",
+  "gifs.upload.choose": "Vælg en fil",
   "gifs.upload.close": "Færdig",
   "gifs.upload.done": "Tilføjet! Den er nu i dine favoritter.",
   "gifs.upload.failed": "Kunne ikke tilføje den: {error}",
