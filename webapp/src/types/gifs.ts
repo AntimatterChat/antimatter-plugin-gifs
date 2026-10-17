@@ -40,8 +40,35 @@ export type ClientConfig = {
     configured: boolean;
     stickers: boolean;
 
-    // Whether the user can add GIFs and stickers.
+    // Whether the user can add GIFs and stickers (and delete their own).
     can_upload?: boolean;
+
+    // Whether the user can delete anyone's uploads (system admins).
+    can_delete_others?: boolean;
+
+    // The largest file an upload takes.
+    upload_max_bytes?: number;
+};
+
+// A GIF or sticker someone added, as GET /api/v1/uploads lists it.
+export type UploadEntry = {
+    id: string;
+    kind: Kind;
+    title: string;
+    tags?: string;
+    pack?: string;
+    user_id: string;
+
+    // Milliseconds since the epoch.
+    created_at: number;
+    item: Item | null;
+    username?: string;
+    can_delete: boolean;
+};
+
+export type UploadList = {
+    uploads: UploadEntry[];
+    has_more: boolean;
 };
 
 // A GIF or sticker to add to the GIF service.

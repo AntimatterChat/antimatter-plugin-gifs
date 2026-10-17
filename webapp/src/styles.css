@@ -122,3 +122,28 @@
 :is(.am-app, .am-layer) .am-sticker > .amgifs-contain { padding: 4px; }
 :is(.am-app, .am-layer) .am-sticker:hover > .amgifs-contain { transform: scale(1.08) rotate(-4deg); transition: transform 0.15s ease; }
 :is(.am-app, .am-layer) .am-gif-cats button .am-ic { width: 13px; height: 13px; }
+
+/* Fusion picker views (with the host's picker kit, whose am-pv- classes frame them) */
+/* What was just added, above the grid, ready to send */
+:is(.am-app, .am-layer) .amgifs-just-added { display: flex; flex: none; align-items: center; gap: 10px; margin: 0 10px 8px; padding: 6px 8px; border: 1px solid var(--am-matter); border-radius: 10px; background: var(--am-matter-soft); color: var(--am-text-2); font-size: 13px; }
+:is(.am-app, .am-layer) .amgifs-just-added-thumb { display: grid; flex: none; place-items: center; width: 52px; height: 52px; padding: 0; overflow: hidden; border-radius: 8px; background: var(--am-raise-2); }
+:is(.am-app, .am-layer) .amgifs-just-added-thumb:focus-visible { outline: 2px solid var(--am-matter); outline-offset: 2px; }
+:is(.am-app, .am-layer) .amgifs-just-added-thumb > * { max-width: 100%; max-height: 100%; }
+:is(.am-app, .am-layer) .amgifs-just-added-text { flex: 1; min-width: 0; }
+:is(.am-app, .am-layer) .amgifs-just-added-close { flex: none; width: 28px; height: 28px; border-radius: 7px; color: var(--am-muted); font-size: 18px; line-height: 1; }
+:is(.am-app, .am-layer) .amgifs-just-added-close:hover { background: var(--am-hover); color: var(--am-text); }
+
+/* The chosen file at the sizes it shows at: a picker cell and a message */
+:is(.am-app, .am-layer) .amgifs-add-preview { display: flex; align-items: flex-end; gap: 12px; }
+:is(.am-app, .am-layer) .amgifs-add-preview figure { display: grid; justify-items: center; gap: 4px; margin: 0; }
+:is(.am-app, .am-layer) .amgifs-add-preview figcaption { color: var(--am-muted); font-size: 11.5px; }
+:is(.am-app, .am-layer) .amgifs-add-preview :is(img, video) { display: block; object-fit: contain; border-radius: 8px; background: var(--am-raise-2); }
+:is(.am-app, .am-layer) .amgifs-add-preview-gif .amgifs-add-preview-picker { width: 90px; max-height: 130px; object-fit: cover; }
+:is(.am-app, .am-layer) .amgifs-add-preview-gif .amgifs-add-preview-message { width: 160px; max-height: 90px; object-fit: cover; }
+:is(.am-app, .am-layer) .amgifs-add-preview-sticker :is(img, video) { background: none; }
+:is(.am-app, .am-layer) .amgifs-add-preview-sticker .amgifs-add-preview-picker { width: 72px; height: 72px; }
+:is(.am-app, .am-layer) .amgifs-add-preview-sticker .amgifs-add-preview-message { width: 128px; height: 128px; }
+@media (max-width: 480px) {
+  :is(.am-app, .am-layer) .amgifs-add-preview-gif .amgifs-add-preview-message { width: 120px; }
+  :is(.am-app, .am-layer) .amgifs-add-preview-sticker .amgifs-add-preview-message { width: 96px; height: 96px; }
+}

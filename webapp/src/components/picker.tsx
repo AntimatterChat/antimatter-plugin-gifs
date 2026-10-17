@@ -1,7 +1,7 @@
 // Copyright (c) 2026-present Antimatter contributors.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -332,6 +332,50 @@ function StickerTab({k, fusion, locale, onSend, query}: Common & {query: string}
     );
 }
 
+// JustAdded shows what was just added in the picker above the grid, with the focus on it, so that
+// Enter sends it.
+function JustAdded({item, onSend, onDismiss}: {item: Item; onSend: (item: Item) => void; onDismiss?: () => void}) {
+    const intl = useIntl();
+    const ref = useRef<HTMLButtonElement>(null);
+    useEffect(() => {
+        ref.current?.focus();
+    }, [item.id]);
+    const title = item.title || intl.formatMessage(messages.manageUntitled);
+    return (
+        <div
+            className='amgifs-just-added'
+            role='status'
+        >
+            <button
+                ref={ref}
+                type='button'
+                className='amgifs-just-added-thumb'
+                aria-label={intl.formatMessage(item.kind === 'sticker' ? messages.sendSticker : messages.sendGif, {title})}
+                title={title}
+                onClick={() => onSend(item)}
+            >
+                <MediaView
+                    media={item.preview}
+                    label=''
+                    className='amgifs-contain'
+                />
+            </button>
+            <span className='amgifs-just-added-text'>{intl.formatMessage(messages.justAdded, {title})}</span>
+            {onDismiss && (
+                <button
+                    type='button'
+                    className='amgifs-just-added-close'
+                    aria-label={intl.formatMessage(messages.justAddedDismiss)}
+                    title={intl.formatMessage(messages.justAddedDismiss)}
+                    onClick={onDismiss}
+                >
+                    {'×'}
+                </button>
+            )}
+        </div>
+    );
+}
+
 type PanelProps = {
     kind: Kind;
     fusion: boolean;
@@ -347,11 +391,19 @@ type PanelProps = {
 
     // Closes the picker, e.g. to open the dialog adding a GIF or sticker.
     onClose: () => void;
+
+    // In the host's Fusion picker: its add and manage buttons, instead of the button opening the
+    // upload dialog.
+    tools?: React.ReactNode;
+
+    // What was just added in the picker: shown first, ready to send, until dismissed.
+    added?: Item | null;
+    onDismissAdded?: () => void;
 };
 
 // PickerPanel is the search box and the GIFs or stickers of the picker, below its tabs: in the
 // plugin's own picker, or in a tab of the host's emoji picker.
-export function PickerPanel({kind, fusion, channelId, rootId, query, onQuery, onPosted, onClose}: PanelProps) {
+export function PickerPanel({kind, fusion, channelId, rootId, query, onQuery, onPosted, onClose, tools, added, onDismissAdded}: PanelProps) {
     const intl = useIntl();
     const k = classNames(fusion);
     const config = useClientConfig();
@@ -388,14 +440,22 @@ export function PickerPanel({kind, fusion, channelId, rootId, query, onQuery, on
                         onChange={(e) => onQuery(e.target.value)}
                     />
                 </label>
-                {config?.can_upload && (
+                {typeof tools === 'undefined' && config?.can_upload && (
                     <AddButton
                         request={{kind, channelId, rootId}}
                         fusion={fusion}
                         onClose={onClose}
                     />
                 )}
+                {tools}
             </div>
+            {added && added.kind === kind && (
+                <JustAdded
+                    item={added}
+                    onSend={onSend}
+                    onDismiss={onDismissAdded}
+                />
+            )}
             {error && (
                 <div
                     className='amgifs-error'

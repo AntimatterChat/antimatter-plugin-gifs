@@ -4,7 +4,7 @@
 import {Client4} from 'mattermost-redux/client';
 
 import manifest from './manifest';
-import type {Category, ClientConfig, Item, Kind, Page, Upload} from './types/gifs';
+import type {Category, ClientConfig, Item, Kind, Page, Upload, UploadList} from './types/gifs';
 
 export class ClientError extends Error {
     status: number;
@@ -45,6 +45,9 @@ async function request<T>(method: string, url: string, body?: unknown): Promise<
             // Not JSON
         }
         throw new ClientError(message, response.status);
+    }
+    if (response.status === 204) {
+        return undefined as T;
     }
     return response.json();
 }
@@ -99,4 +102,14 @@ export function upload({kind, file, title, tags, pack}: Upload) {
     }
     form.append('file', file, file.name);
     return request<Item>('POST', apiURL('/upload'), form);
+}
+
+// listUploads lists the GIFs or stickers people added, newest first, a page at a time.
+export function listUploads(kind: Kind, q: string, page: number, perPage = 30) {
+    return request<UploadList>('GET', apiURL('/uploads', {kind, q, page, per_page: perPage}));
+}
+
+// deleteUpload deletes a GIF or sticker someone added (their own, or anyone's for admins).
+export function deleteUpload(kind: Kind, id: string) {
+    return request<void>('DELETE', apiURL(`/uploads/${kind}/${encodeURIComponent(id)}`));
 }

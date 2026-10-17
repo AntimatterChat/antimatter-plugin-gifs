@@ -138,6 +138,14 @@ export function addedFavorite(item: Item) {
     }
 }
 
+// removedFavorite forgets an item the server removed from the favourites, such as a deleted upload.
+export function removedFavorite(kind: Kind, id: string) {
+    const list = favorites.get();
+    if (list && list.some((f) => f.id === id && f.kind === kind)) {
+        favorites.set(list.filter((f) => f.id !== id || f.kind !== kind));
+    }
+}
+
 export async function toggleFavorite(item: Item) {
     const list = favorites.get();
     const next = isFavorite(list, item) ? await client.removeFavorite(item) : await client.addFavorite(item);
