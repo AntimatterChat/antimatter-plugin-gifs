@@ -15,7 +15,7 @@
 .amgifs-sticker-cell:hover button.amgifs-star-small,
 .amgifs-sticker-cell button.amgifs-star-small:focus-visible,
 .amgifs-sticker-cell button.amgifs-star-small[aria-pressed='true'] { opacity: 1; }
-.amgifs-error { margin: 0 10px 8px; padding: 6px 10px; border-radius: 8px; background: rgba(210, 75, 78, 0.12); color: #d24b4e; font-size: 13px; }
+.amgifs-error { margin: 0 10px 8px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--am-danger, #d24b4e) 12%, transparent); color: var(--am-danger, #d24b4e); font-size: 13px; }
 .amgifs-attribution { margin-top: 2px; font-size: 11.5px; opacity: 0.64; }
 .amgifs-attribution a { color: inherit; }
 .amgifs-menu-icon, .amgifs-header-icon { width: 18px; height: 18px; }
