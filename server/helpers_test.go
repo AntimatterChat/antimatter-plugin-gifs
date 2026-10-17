@@ -285,7 +285,7 @@ func newTestEnv(t *testing.T, change func(c *configuration)) *testEnv {
 		return &model.User{Id: id, Roles: model.SystemUserRoleId}, nil
 	}).Maybe()
 	for _, level := range []string{"LogDebug", "LogInfo", "LogWarn", "LogError"} {
-		for n := 1; n <= 7; n += 2 {
+		for n := 1; n <= 11; n += 2 {
 			args := make([]any, n)
 			for i := range args {
 				args[i] = mock.Anything
