@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Adaugă un GIF",
   "gifs.upload.add_sticker": "Adaugă un autocolant",
   "gifs.upload.cancel": "Anulează",
+  "gifs.upload.change": "Alege alt fișier",
+  "gifs.upload.choose": "Alege un fișier",
   "gifs.upload.close": "Gata",
   "gifs.upload.done": "Adăugat! Se află în favoritele tale.",
   "gifs.upload.failed": "Nu a putut fi adăugat: {error}",

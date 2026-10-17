@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "إضافة GIF",
   "gifs.upload.add_sticker": "إضافة ملصق",
   "gifs.upload.cancel": "إلغاء",
+  "gifs.upload.change": "اختر ملفًا آخر",
+  "gifs.upload.choose": "اختر ملفًا",
   "gifs.upload.close": "تم",
   "gifs.upload.done": "تمت الإضافة! أصبح في المفضلة.",
   "gifs.upload.failed": "تعذرت الإضافة: {error}",

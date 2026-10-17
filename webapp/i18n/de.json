@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIF hinzufügen",
   "gifs.upload.add_sticker": "Sticker hinzufügen",
   "gifs.upload.cancel": "Abbrechen",
+  "gifs.upload.change": "Anderes auswählen",
+  "gifs.upload.choose": "Datei auswählen",
   "gifs.upload.close": "Fertig",
   "gifs.upload.done": "Hinzugefügt! Es ist in deinen Favoriten.",
   "gifs.upload.failed": "Konnte nicht hinzugefügt werden: {error}",

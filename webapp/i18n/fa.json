@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "افزودن یک GIF",
   "gifs.upload.add_sticker": "افزودن یک استیکر",
   "gifs.upload.cancel": "لغو",
+  "gifs.upload.change": "انتخاب فایل دیگر",
+  "gifs.upload.choose": "انتخاب فایل",
   "gifs.upload.close": "انجام شد",
   "gifs.upload.done": "افزوده شد! در برگزیده‌های شما قرار دارد.",
   "gifs.upload.failed": "نمی‌توانیم آن را اضافه کنیم: {error}",

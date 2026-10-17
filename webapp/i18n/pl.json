@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Dodaj GIF",
   "gifs.upload.add_sticker": "Dodaj naklejkę",
   "gifs.upload.cancel": "Anuluj",
+  "gifs.upload.change": "Wybierz inny plik",
+  "gifs.upload.choose": "Wybierz plik",
   "gifs.upload.close": "Gotowe",
   "gifs.upload.done": "Dodano! Znalazłaś/znalazłeś ją w ulubionych.",
   "gifs.upload.failed": "Nie udało się dodać: {error}",

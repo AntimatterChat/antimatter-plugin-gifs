@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Añadir un GIF",
   "gifs.upload.add_sticker": "Añadir una pegatina",
   "gifs.upload.cancel": "Cancelar",
+  "gifs.upload.change": "Elegir otro archivo",
+  "gifs.upload.choose": "Elegir un archivo",
   "gifs.upload.close": "Hecho",
   "gifs.upload.done": "¡Añadido! Está en tus favoritos.",
   "gifs.upload.failed": "No se pudo añadir: {error}",

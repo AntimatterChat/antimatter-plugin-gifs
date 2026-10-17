@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "新增 GIF",
   "gifs.upload.add_sticker": "新增貼紙",
   "gifs.upload.cancel": "取消",
+  "gifs.upload.change": "選擇其他檔案",
+  "gifs.upload.choose": "選擇檔案",
   "gifs.upload.close": "完成",
   "gifs.upload.done": "已新增！它已加入您的我的最愛。",
   "gifs.upload.failed": "無法新增：{error}",

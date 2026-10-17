@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "GIF যোগ করুন",
   "gifs.upload.add_sticker": "স্টিকার যোগ করুন",
   "gifs.upload.cancel": "বাতিল",
+  "gifs.upload.change": "অন্য ফাইল নির্বাচন করুন",
+  "gifs.upload.choose": "একটি ফাইল নির্বাচন করুন",
   "gifs.upload.close": "সম্পন্ন",
   "gifs.upload.done": "যোগ করা হয়েছে! এটি আপনার প্রিয় তালিকায় আছে।",
   "gifs.upload.failed": "যোগ করা যায়নি: {error}",

@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Προσθήκη GIF",
   "gifs.upload.add_sticker": "Προσθήκη αυτοκόλλητου",
   "gifs.upload.cancel": "Ακύρωση",
+  "gifs.upload.change": "Επιλέξτε άλλο αρχείο",
+  "gifs.upload.choose": "Επιλέξτε αρχείο",
   "gifs.upload.close": "Ολοκλήρωση",
   "gifs.upload.done": "Προστέθηκε! Βρίσκεται στα αγαπημένα σας.",
   "gifs.upload.failed": "Δεν ήταν δυνατή η προσθήκη: {error}",

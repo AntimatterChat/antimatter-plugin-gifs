@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Přidat GIF",
   "gifs.upload.add_sticker": "Přidat nálepku",
   "gifs.upload.cancel": "Zrušit",
+  "gifs.upload.change": "Vybrat jiný soubor",
+  "gifs.upload.choose": "Vybrat soubor",
   "gifs.upload.close": "Hotovo",
   "gifs.upload.done": "Přidáno! Je v oblíbených.",
   "gifs.upload.failed": "Nepodařilo se to přidat: {error}",

@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Magdagdag ng GIF",
   "gifs.upload.add_sticker": "Magdagdag ng sticker",
   "gifs.upload.cancel": "Kanselahin",
+  "gifs.upload.change": "Pumili ng ibang file",
+  "gifs.upload.choose": "Pumili ng file",
   "gifs.upload.close": "Tapos na",
   "gifs.upload.done": "Naidagdag! Nasa mga paborito mo na ito.",
   "gifs.upload.failed": "Hindi naidagdag: {error}",

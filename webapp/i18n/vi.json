@@ -68,6 +68,8 @@
   "gifs.upload.add_gif": "Thêm GIF",
   "gifs.upload.add_sticker": "Thêm sticker",
   "gifs.upload.cancel": "Hủy",
+  "gifs.upload.change": "Chọn tệp khác",
+  "gifs.upload.choose": "Chọn tệp",
   "gifs.upload.close": "Xong",
   "gifs.upload.done": "Đã thêm! Nó nằm trong mục yêu thích của bạn.",
   "gifs.upload.failed": "Không thể thêm: {error}",
