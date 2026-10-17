@@ -12,6 +12,7 @@ import type {Item, Media} from '../types/gifs';
 import {mediaSrc, safeLink} from '../urls';
 import {classNames, isFusionUI} from '../web_ui';
 
+import {iconTip, tip} from './fusion/tip';
 import {StarIcon} from './icons';
 import MediaView from './media_view';
 
@@ -68,7 +69,7 @@ export default function GifPost({post}: {post: Post}) {
                 className={k('sticker-msg')}
                 role='img'
                 aria-label={label}
-                title={item.attribution ? `${title} · ${item.attribution}` : title}
+                {...(title || item.attribution ? tip(item.attribution ? `${title} · ${item.attribution}` : title) : {})}
             >
                 <MediaView
                     media={item.post}
@@ -108,8 +109,7 @@ export default function GifPost({post}: {post: Post}) {
                 type='button'
                 className={k('gif-star', fav && 'on')}
                 aria-pressed={fav}
-                aria-label={favLabel}
-                title={favLabel}
+                {...iconTip(favLabel)}
                 onClick={() => toggleFavorite(item).catch(() => null)}
             >
                 <StarIcon className={fusion ? 'am-ic' : 'amgifs-ic'}/>

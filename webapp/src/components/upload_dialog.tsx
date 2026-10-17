@@ -11,8 +11,9 @@ import {addedFavorite, closeUpload, openUpload, useUpload, type UploadRequest} f
 import type {Item} from '../types/gifs';
 import {classNames, isFusionUI} from '../web_ui';
 
+import {iconTip} from './fusion/tip';
 import {useLoad} from './hooks';
-import {PlusIcon} from './icons';
+import {PlusIcon, UploadIcon} from './icons';
 import MediaView from './media_view';
 import {layerContainer} from './picker_root';
 
@@ -164,14 +165,21 @@ export function UploadDialog({request, fusion}: Props) {
         body = (
             <>
                 <p className={k('lead')}>{intl.formatMessage(sticker ? messages.uploadStickerLead : messages.uploadGifLead)}</p>
-                {field('file', intl.formatMessage(messages.uploadFile), (a11y) => (
+                {field('file', intl.formatMessage(messages.uploadFile), (a11y) => (fusion ? (
+                    <FusionFileInput
+                        a11y={a11y}
+                        accept={ACCEPT[request.kind]}
+                        file={file}
+                        onFile={onFile}
+                    />
+                ) : (
                     <input
                         {...a11y}
                         type='file'
                         accept={ACCEPT[request.kind]}
                         onChange={(e) => onFile(e.target.files?.[0] || null)}
                     />
-                ))}
+                )))}
                 {field('title', intl.formatMessage(messages.uploadTitle), (a11y) => (
                     <input
                         {...a11y}
@@ -257,6 +265,39 @@ export function UploadDialog({request, fusion}: Props) {
     );
 }
 
+type FileInputProps = {
+    a11y: {'aria-label': string; 'aria-describedby'?: string};
+    accept: string;
+    file: File | null;
+    onFile: (file: File | null) => void;
+};
+
+// FusionFileInput is the dialog's file field under Fusion: the browser's file input, out of sight
+// but still the control the keyboard and screen readers reach, behind a Fusion button that shows
+// the chosen file. The field's label around it opens the file chooser on a click.
+export function FusionFileInput({a11y, accept, file, onFile}: FileInputProps) {
+    const intl = useIntl();
+    return (
+        <div className='amgifs-file'>
+            <input
+                {...a11y}
+                type='file'
+                className='amgifs-file-input'
+                accept={accept}
+                onChange={(e) => onFile(e.target.files?.[0] || null)}
+            />
+            <span
+                className='am-btn amgifs-file-btn'
+                aria-hidden='true'
+            >
+                <UploadIcon className='am-ic am-sm'/>
+                {intl.formatMessage(file ? messages.uploadChange : messages.uploadChoose)}
+            </span>
+            {file && <span className='amgifs-file-name'>{file.name}</span>}
+        </div>
+    );
+}
+
 // AddButton opens the dialog adding a GIF or sticker, after closing the picker it's in.
 export function AddButton({request, fusion, onClose}: {request: UploadRequest; fusion: boolean; onClose: () => void}) {
     const intl = useIntl();
@@ -265,8 +306,7 @@ export function AddButton({request, fusion, onClose}: {request: UploadRequest; f
         <button
             type='button'
             className={fusion ? 'am-icon-btn' : 'amgifs-add-btn'}
-            title={label}
-            aria-label={label}
+            {...iconTip(label)}
             onClick={() => {
                 onClose();
                 openUpload(request);

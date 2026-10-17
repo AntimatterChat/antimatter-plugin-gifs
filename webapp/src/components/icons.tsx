@@ -3,10 +3,14 @@
 
 import React from 'react';
 
+import {isFusion} from './fusion/fusion_ui';
+
 type Props = {className?: string};
 
-// Line icons drawn with the current color, sized by their class (am-ic under Fusion).
-function Svg({className, children}: Props & {children: React.ReactNode}) {
+// Line icons drawn with the current color, sized by their class (am-ic under Fusion). Under Fusion,
+// an icon its sprite has is the sprite's symbol (#am-i-<sprite>), so it matches the rest of the UI;
+// the classic page has no sprite, so it gets the drawing here.
+function Svg({className, sprite, children}: Props & {sprite?: string; children: React.ReactNode}) {
     return (
         <svg
             className={className}
@@ -19,15 +23,19 @@ function Svg({className, children}: Props & {children: React.ReactNode}) {
             strokeLinecap='round'
             strokeLinejoin='round'
             aria-hidden='true'
+            data-icon={sprite}
         >
-            {children}
+            {sprite && isFusion() ? <use href={`#am-i-${sprite}`}/> : children}
         </svg>
     );
 }
 
 export function StarIcon(props: Props) {
     return (
-        <Svg {...props}>
+        <Svg
+            {...props}
+            sprite='star'
+        >
             <path d='m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z'/>
         </Svg>
     );
@@ -35,7 +43,10 @@ export function StarIcon(props: Props) {
 
 export function SearchIcon(props: Props) {
     return (
-        <Svg {...props}>
+        <Svg
+            {...props}
+            sprite='search'
+        >
             <circle
                 cx='11'
                 cy='11'
@@ -48,8 +59,23 @@ export function SearchIcon(props: Props) {
 
 export function PlusIcon(props: Props) {
     return (
-        <Svg {...props}>
+        <Svg
+            {...props}
+            sprite='plus'
+        >
             <path d='M12 5v14M5 12h14'/>
+        </Svg>
+    );
+}
+
+// An arrow up out of a tray: choosing a file to add.
+export function UploadIcon(props: Props) {
+    return (
+        <Svg
+            {...props}
+            sprite='upload'
+        >
+            <path d='M12 15V4M7.5 8.5 12 4l4.5 4.5M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4'/>
         </Svg>
     );
 }
@@ -57,14 +83,17 @@ export function PlusIcon(props: Props) {
 // A sticker: a square with a peeled corner and a smile.
 export function StickerIcon(props: Props) {
     return (
-        <Svg {...props}>
+        <Svg
+            {...props}
+            sprite='sticker'
+        >
             <path d='M5 4h14a1 1 0 0 1 1 1v9l-6 6H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z'/>
             <path d='M14 20v-5a1 1 0 0 1 1-1h5M9 10h.01M15 10h.01M9 14.5a4 4 0 0 0 3 1'/>
         </Svg>
     );
 }
 
-// GIF in a rounded frame.
+// GIF in a rounded frame (Fusion's sprite has no GIF icon: drawn here in both UIs).
 export function GifIcon(props: Props) {
     return (
         <Svg {...props}>

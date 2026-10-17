@@ -52,8 +52,27 @@ describe('GifPost', () => {
         const {container} = renderWithProviders(<GifPost post={makePost({...makeSticker('s1'), attribution: 'Antimatter stickers, CC BY 4.0'})}/>);
         const sticker = container.querySelector('.am-sticker-msg') as HTMLElement;
         expect(sticker).toHaveAttribute('aria-label', 'Sticker: It works!');
-        expect(sticker).toHaveAttribute('title', 'It works! · Antimatter stickers, CC BY 4.0');
+        expect(sticker).toHaveAttribute('data-am-tip', 'It works! · Antimatter stickers, CC BY 4.0');
+        expect(sticker).not.toHaveAttribute('title');
         expect(sticker.querySelector('img')).toHaveAttribute('src', '/plugins/com.antimatterchat.gifs/media/s1/tinywebp_transparent.webp');
+    });
+
+    test('under Fusion, the star has Fusion\'s tooltip and icon', () => {
+        window.antimatterWebUI = 'fusion';
+        const {container} = renderWithProviders(<GifPost post={makePost(makeGif('g1'))}/>);
+        const star = screen.getByRole('button', {name: 'Add to favorites'});
+        expect(star).toHaveAttribute('data-am-tip', 'Add to favorites');
+        expect(star).not.toHaveAttribute('title');
+        expect(star.querySelector('use')).toHaveAttribute('href', '#am-i-star');
+        expect(container.querySelector('[title]')).toBeNull();
+    });
+
+    test('under the classic UI, the star keeps the browser\'s tooltip and its own icon', () => {
+        renderWithProviders(<GifPost post={makePost(makeGif('g1'))}/>);
+        const star = screen.getByRole('button', {name: 'Add to favorites'});
+        expect(star).toHaveAttribute('title', 'Add to favorites');
+        expect(star).not.toHaveAttribute('data-am-tip');
+        expect(star.querySelector('use')).toBeNull();
     });
 
     test('shows the message of posts with invalid props', () => {
