@@ -24,8 +24,13 @@ const uploadMaxSizeBytes = 16 << 20
 type ClientConfig struct {
 	Configured bool `json:"configured"`
 	Stickers   bool `json:"stickers"`
-	// CanUpload tells whether the user can add GIFs and stickers.
+	// CanUpload tells whether the user can add GIFs and stickers (and delete their own).
 	CanUpload bool `json:"can_upload"`
+	// CanDeleteOthers tells whether the user can delete anyone's uploads (system admins, while
+	// the service takes uploads).
+	CanDeleteOthers bool `json:"can_delete_others"`
+	// UploadMaxBytes is the largest file an upload takes, when uploads are possible.
+	UploadMaxBytes int64 `json:"upload_max_bytes,omitempty"`
 }
 
 // newRouter returns the router of the plugin's REST API, served under
@@ -52,6 +57,8 @@ func (p *Plugin) newRouter() *mux.Router {
 	api.HandleFunc("/recent", p.handleGetRecent).Methods(http.MethodGet)
 	api.HandleFunc("/post", p.handlePost).Methods(http.MethodPost)
 	api.HandleFunc("/upload", p.handleUpload).Methods(http.MethodPost)
+	api.HandleFunc("/uploads", p.handleListUploads).Methods(http.MethodGet)
+	api.HandleFunc("/uploads/{kind:gif|sticker}/{id}", p.handleDeleteUpload).Methods(http.MethodDelete)
 	api.HandleFunc("/actions/{action:send|shuffle|cancel}", p.handleAction).Methods(http.MethodPost)
 
 	return router
@@ -118,11 +125,19 @@ func localeParam(r *http.Request) string {
 
 func (p *Plugin) handleGetConfig(w http.ResponseWriter, r *http.Request) {
 	c := p.getConfiguration()
-	p.writeJSON(w, ClientConfig{
+	userID := r.Header.Get("Mattermost-User-Id")
+	cfg := ClientConfig{
 		Configured: c.serviceBase() != "",
 		Stickers:   c.EnableStickers,
-		CanUpload:  p.canUpload(r.Header.Get("Mattermost-User-Id")),
-	})
+		CanUpload:  p.canUpload(userID),
+	}
+	if p.getService().canUpload() {
+		cfg.CanDeleteOthers = p.isAdmin(userID)
+		if cfg.CanUpload || cfg.CanDeleteOthers {
+			cfg.UploadMaxBytes = uploadMaxSizeBytes
+		}
+	}
+	p.writeJSON(w, cfg)
 }
 
 // canUpload tells whether a user can add GIFs and stickers: the service takes uploads, and the
@@ -131,7 +146,7 @@ func (p *Plugin) canUpload(userID string) bool {
 	if !p.getService().canUpload() {
 		return false
 	}
-	return p.getConfiguration().everyoneCanUpload() || p.API.HasPermissionTo(userID, model.PermissionManageSystem)
+	return p.getConfiguration().everyoneCanUpload() || p.isAdmin(userID)
 }
 
 // uploadText reads a text field of an upload, checking its length.
@@ -204,9 +219,13 @@ func (p *Plugin) handleUpload(w http.ResponseWriter, r *http.Request) {
 		p.writeError(w, err)
 		return
 	}
-	// The user finds it among their favourites right away.
+	// The user finds it among their favourites right away, and in the uploads they can manage.
 	if _, err := p.store.AddFavorite(userID, *it); err != nil {
 		p.API.LogWarn("Failed to add an upload to the favourites", "err", err.Error())
+	}
+	record := Upload{ID: it.ID, Kind: it.Kind, Title: up.Title, Tags: up.Tags, Pack: up.Pack, UserID: userID, CreatedAt: model.GetMillis()}
+	if err := p.store.AddUpload(record, *it); err != nil {
+		p.API.LogWarn("Failed to record an upload", "err", err.Error())
 	}
 	p.API.LogInfo("GIF added", "user_id", userID, "kind", it.Kind, "id", it.ID)
 	p.writeJSON(w, it)

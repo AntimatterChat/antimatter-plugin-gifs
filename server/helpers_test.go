@@ -70,6 +70,31 @@ type fakeService struct {
 	requests []string
 	shares   []string
 	uploads  []fakeUpload
+	// deleted are the IDs of DELETE /v2/upload/{id}.
+	deleted []string
+}
+
+// deleteUpload answers DELETE /v2/upload/{id}: 204, 404 for "gone", 403 without the upload key.
+func (f *fakeService) deleteUpload(w http.ResponseWriter, r *http.Request, id string) {
+	if r.Header.Get("Authorization") != "Bearer up-secret" {
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprint(w, `{"error":{"code":403,"message":"The request is missing a valid upload key.","status":"PERMISSION_DENIED"}}`)
+		return
+	}
+	f.mu.Lock()
+	f.deleted = append(f.deleted, id)
+	f.mu.Unlock()
+	if id == "gone" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (f *fakeService) deletedIDs() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]string{}, f.deleted...)
 }
 
 // fakeUpload is a request to POST /v2/upload.
@@ -86,7 +111,8 @@ func (f *fakeService) lastUpload() fakeUpload {
 	return f.uploads[len(f.uploads)-1]
 }
 
-// upload answers POST /v2/upload with item up1 of the uploaded kind.
+// upload answers POST /v2/upload with item up<n> of the uploaded kind, n counting the uploads (up1
+// first), or item x for the tags "id:x" (the same file uploaded again).
 func (f *fakeService) upload(w http.ResponseWriter, r *http.Request, media func(string, int, int) map[string]any) {
 	up := fakeUpload{auth: r.Header.Get("Authorization"), fields: map[string]string{}}
 	if up.auth != "Bearer up-secret" {
@@ -107,18 +133,22 @@ func (f *fakeService) upload(w http.ResponseWriter, r *http.Request, media func(
 	}
 	f.mu.Lock()
 	f.uploads = append(f.uploads, up)
+	id := fmt.Sprintf("up%d", len(f.uploads))
 	f.mu.Unlock()
+	if v, ok := strings.CutPrefix(up.fields["tags"], "id:"); ok {
+		id = v
+	}
 	if up.fields["title"] == "unconvertible" {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		fmt.Fprint(w, `{"error":{"code":422,"message":"The file couldn't be converted: is it a valid image or video?","status":"INVALID_ARGUMENT"}}`)
 		return
 	}
-	res := map[string]any{"id": "up1", "title": up.fields["title"], "media_formats": map[string]any{
-		"tinygif": media("up1/tinygif.gif", 220, 124), "gif": media("up1/gif.gif", 498, 280),
+	res := map[string]any{"id": id, "title": up.fields["title"], "media_formats": map[string]any{
+		"tinygif": media(id+"/tinygif.gif", 220, 124), "gif": media(id+"/gif.gif", 498, 280),
 	}}
 	if up.fields["kind"] == "sticker" {
 		res["flags"] = []string{"sticker"}
-		res["media_formats"] = map[string]any{"tinywebp_transparent": media("up1/tinywebp_transparent.webp", 220, 220)}
+		res["media_formats"] = map[string]any{"tinywebp_transparent": media(id+"/tinywebp_transparent.webp", 220, 220)}
 	}
 	_ = json.NewEncoder(w).Encode(map[string]any{"results": []any{res}})
 }
@@ -164,6 +194,10 @@ func newFakeService(t *testing.T) *fakeService {
 
 		if r.URL.Path == "/v2/upload" {
 			f.upload(w, r, media)
+			return
+		}
+		if id, ok := strings.CutPrefix(r.URL.Path, "/v2/upload/"); ok && r.Method == http.MethodDelete {
+			f.deleteUpload(w, r, id)
 			return
 		}
 		if q.Get("key") != "secret" || q.Get("client_key") != clientKey {

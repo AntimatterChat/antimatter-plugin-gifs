@@ -545,3 +545,44 @@ func (s *gifService) mediaURL(u string) string {
 	}
 	return u
 }
+
+// DeleteUpload removes a GIF or sticker added with Upload from the service (gifs-server's DELETE
+// /v2/upload/{id}). One the service doesn't know any more counts as deleted.
+func (s *gifService) DeleteUpload(ctx context.Context, id string) error {
+	if !s.canUpload() {
+		return newAPIError(http.StatusForbidden, "the GIF service doesn't take uploads")
+	}
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, s.base+"/upload/"+url.PathEscape(id), nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+s.uploadKey)
+	resp, err := s.http.Do(req)
+	if err != nil {
+		var uerr *url.Error
+		if errors.As(err, &uerr) {
+			err = uerr.Err
+		}
+		return newAPIError(http.StatusBadGateway, "the GIF service can't be reached: "+err.Error())
+	}
+	defer resp.Body.Close()
+	data, _ := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusNoContent, http.StatusNotFound:
+		// Searches and lists stop showing it now, not after their cache expires.
+		s.cache.removePrefix("api:")
+		return nil
+	}
+	var e struct {
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	msg := resp.Status
+	if json.Unmarshal(data, &e) == nil && e.Error.Message != "" {
+		msg = e.Error.Message
+	}
+	return newAPIError(http.StatusBadGateway, "the GIF service refused the deletion: "+msg)
+}

@@ -18,6 +18,12 @@ import (
 // doUpload posts a multipart upload to the plugin as the test user.
 func (env *testEnv) doUpload(t *testing.T, fields map[string]string, file []byte) *httptest.ResponseRecorder {
 	t.Helper()
+	return env.doUploadAs(t, testUserID, fields, file)
+}
+
+// doUploadAs posts a multipart upload to the plugin as a user.
+func (env *testEnv) doUploadAs(t *testing.T, userID string, fields map[string]string, file []byte) *httptest.ResponseRecorder {
+	t.Helper()
 	var body bytes.Buffer
 	mw := multipart.NewWriter(&body)
 	for k, v := range fields {
@@ -31,7 +37,7 @@ func (env *testEnv) doUpload(t *testing.T, fields map[string]string, file []byte
 	require.NoError(t, mw.Close())
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/upload", &body)
 	req.Header.Set("Content-Type", mw.FormDataContentType())
-	req.Header.Set("Mattermost-User-Id", testUserID)
+	req.Header.Set("Mattermost-User-Id", userID)
 	rec := httptest.NewRecorder()
 	env.p.ServeHTTP(nil, rec, req)
 	return rec
@@ -62,7 +68,11 @@ func TestUploadPermissions(t *testing.T) {
 	assert.True(t, decode[ClientConfig](t, env.do(t, http.MethodGet, "/api/v1/config", testUserID, nil)).CanUpload)
 
 	env = newTestEnv(t, withUploads("everyone"))
-	assert.True(t, decode[ClientConfig](t, env.do(t, http.MethodGet, "/api/v1/config", testUserID, nil)).CanUpload)
+	env.api.On("HasPermissionTo", testUserID, model.PermissionManageSystem).Return(false)
+	cfg := decode[ClientConfig](t, env.do(t, http.MethodGet, "/api/v1/config", testUserID, nil))
+	assert.True(t, cfg.CanUpload)
+	assert.False(t, cfg.CanDeleteOthers)
+	assert.Equal(t, int64(uploadMaxSizeBytes), cfg.UploadMaxBytes)
 }
 
 func TestUpload(t *testing.T) {

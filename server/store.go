@@ -11,6 +11,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+// errTooManyUpdates is returned when a list kept changing under an update.
+var errTooManyUpdates = errors.New("too many concurrent updates")
+
 // Limits of the per-user lists.
 const (
 	maxFavorites = 200
@@ -74,7 +77,7 @@ func (s *Store) update(key string, change func([]Item) []Item) ([]Item, error) {
 			return items, nil
 		}
 	}
-	return nil, errors.New("too many concurrent updates")
+	return nil, errTooManyUpdates
 }
 
 // prepend puts an item first, removing its other copies, and truncates the list.
