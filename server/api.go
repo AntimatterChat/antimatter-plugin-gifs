@@ -147,10 +147,10 @@ func (p *Plugin) canUpload(userID string) bool {
 	if !p.getService().canUpload() {
 		return false
 	}
-	if p.isAdmin(userID) {
+	if p.getConfiguration().everyoneCanUpload() && !p.isGuest(userID) {
 		return true
 	}
-	return p.getConfiguration().everyoneCanUpload() && !p.isGuest(userID)
+	return p.isAdmin(userID)
 }
 
 // isGuest tells whether a user is a guest account. When the account can't be read, the user
