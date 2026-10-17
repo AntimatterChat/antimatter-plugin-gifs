@@ -42,8 +42,8 @@ describe('GifPost', () => {
         expect(screen.getByRole('link', {name: 'Via Tenor'})).toHaveAttribute('href', 'https://tenor.com/view/x');
 
         (client.addFavorite as jest.Mock).mockResolvedValue([gif]);
-        fireEvent.click(screen.getByRole('button', {name: 'Add to favorites'}));
-        expect(await screen.findByRole('button', {name: 'Remove from favorites'})).toHaveAttribute('aria-pressed', 'true');
+        fireEvent.click(screen.getByRole('button', {name: 'Add to favourites'}));
+        expect(await screen.findByRole('button', {name: 'Remove from favourites'})).toHaveAttribute('aria-pressed', 'true');
         expect(client.addFavorite).toHaveBeenCalledWith(gif);
     });
 

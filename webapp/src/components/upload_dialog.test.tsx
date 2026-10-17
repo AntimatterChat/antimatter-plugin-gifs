@@ -92,7 +92,7 @@ test('adds a sticker to a pack and sends it', async () => {
     fireEvent.change(screen.getByLabelText('Sticker pack'), {target: {value: 'Lab crew'}});
     fireEvent.click(add);
 
-    expect(await screen.findByText('Added! It’s in your favorites.')).toBeInTheDocument();
+    expect(await screen.findByText('Added! It’s in your favourites.')).toBeInTheDocument();
     expect(mocked.upload).toHaveBeenCalledWith({kind: 'sticker', file, title: 'Lab dance', tags: 'dance, lab', pack: 'Lab crew'});
 
     fireEvent.click(screen.getByRole('button', {name: 'Send it'}));

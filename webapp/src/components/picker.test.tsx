@@ -80,7 +80,7 @@ test('shows favorites and keeps the dialog open when posting fails', async () =>
     mocked.postItem.mockRejectedValue(new Error('you can’t post in this channel'));
     renderWithProviders(<PickerRoot/>);
     act(() => openPicker({channelId: 'channel1'}));
-    fireEvent.click(screen.getByRole('button', {name: 'Favorites'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Favourites'}));
     fireEvent.click(await screen.findByRole('button', {name: 'Send GIF: Starred'}));
     expect(await screen.findByRole('alert')).toHaveTextContent('Couldn’t send it: you can’t post in this channel');
     expect(getPicker()).not.toBeNull();

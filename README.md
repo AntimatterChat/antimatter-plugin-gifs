@@ -9,7 +9,7 @@ sticker pack), or Tenor itself.
 
 - **Picker**, after the Fusion UI mockup's GIF and sticker picker: GIFs and Stickers tabs of the
   message box's emoji picker (or the plugin's own picker), each with a search box; for GIFs, chips
-  for Favorites, Recent, Trending and the service's categories (and suggested searches while
+  for Favourites, Recent, Trending and the service's categories (and suggested searches while
   searching) over a two-column grid that loads more as it scrolls; for stickers, the recently used
   and favourite stickers and a section per sticker pack.
 - **Adding GIFs and stickers** (gifs-server with an upload key): a "+" button next to the
