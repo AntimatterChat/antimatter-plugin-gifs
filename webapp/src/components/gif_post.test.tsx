@@ -60,8 +60,8 @@ describe('GifPost', () => {
     test('under Fusion, the star has Fusion\'s tooltip and icon', () => {
         window.antimatterWebUI = 'fusion';
         const {container} = renderWithProviders(<GifPost post={makePost(makeGif('g1'))}/>);
-        const star = screen.getByRole('button', {name: 'Add to favorites'});
-        expect(star).toHaveAttribute('data-am-tip', 'Add to favorites');
+        const star = screen.getByRole('button', {name: 'Add to favourites'});
+        expect(star).toHaveAttribute('data-am-tip', 'Add to favourites');
         expect(star).not.toHaveAttribute('title');
         expect(star.querySelector('use')).toHaveAttribute('href', '#am-i-star');
         expect(container.querySelector('[title]')).toBeNull();
@@ -69,8 +69,8 @@ describe('GifPost', () => {
 
     test('under the classic UI, the star keeps the browser\'s tooltip and its own icon', () => {
         renderWithProviders(<GifPost post={makePost(makeGif('g1'))}/>);
-        const star = screen.getByRole('button', {name: 'Add to favorites'});
-        expect(star).toHaveAttribute('title', 'Add to favorites');
+        const star = screen.getByRole('button', {name: 'Add to favourites'});
+        expect(star).toHaveAttribute('title', 'Add to favourites');
         expect(star).not.toHaveAttribute('data-am-tip');
         expect(star.querySelector('use')).toBeNull();
     });
