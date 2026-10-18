@@ -225,6 +225,22 @@ describe('add view', () => {
     });
 });
 
+describe('add view: one upload control', () => {
+    test.each([
+        ['GIF', GifsTab, 'Add a GIF'],
+        ['sticker', StickersTab, 'Add a sticker'],
+    ] as const)('a %s is added from the picker kit\'s drop zone only', (kind, Tab, add) => {
+        renderWithProviders(<Tab {...props}/>);
+        fireEvent.click(screen.getByRole('button', {name: add}));
+
+        // The kit's drop zone is the one way to give the file: no other file field, nor the dialog's upload button.
+        expect(screen.getAllByTestId('drop')).toHaveLength(1);
+        expect(document.querySelectorAll('input[type="file"]')).toHaveLength(1);
+        expect(screen.queryByRole('button', {name: /upload/i})).toBeNull();
+        expect(screen.queryByRole('dialog')).toBeNull();
+    });
+});
+
 describe('manage view', () => {
     test('lists the uploads with who added them, searches, and pages', async () => {
         mocked.listUploads.mockImplementation((kind, q, page) => Promise.resolve(q ? {uploads: [entry('g3', 'Wave', false)], has_more: false} : {uploads: page ? [entry('g2', 'Older', true)] : [entry('g1', 'Lab wave', true)], has_more: !page}));
