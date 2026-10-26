@@ -123,7 +123,9 @@ clients can't make up media URLs.
 
 Posts have the type `custom_antimatter_gif` and the item in the `antimatter_gif` prop; their message
 is a Markdown image for other clients. Posting registers the share with the service (`registershare`,
-with the search), which feeds its trending lists. Favourites (≤ 200) and recently used items (≤ 30)
+with the search when the user searched it and found the item), which feeds its trending lists. While
+the plugin serves the media, the webapp loads the media of posts from it only, never from other URLs
+of a post's props. Favourites (≤ 200) and recently used items (≤ 30)
 are snapshots of items in the KV store (`fav_<user id>`, `recent_<user id>`).
 
 ### Webapp
