@@ -113,3 +113,44 @@ func TestPreviewActions(t *testing.T) {
 	resp = action("shuffle", map[string]any{"kind": "sticker", "query": "works"})
 	assert.Contains(t, resp.EphemeralText, "stickers are turned off")
 }
+
+// The index of a Shuffle comes from the button's context, which anyone can send: one out of range
+// panicked (indexing the results with a negative index) and took the plugin down.
+func TestHandleActionShuffleNegativeIndex(t *testing.T) {
+	env := newTestEnv(t, nil)
+	var updated *model.Post
+	env.api.On("UpdateEphemeralPost", testUserID, mock.AnythingOfType("*model.Post")).Return(func(_ string, post *model.Post) *model.Post {
+		updated = post
+		return post
+	})
+	for index, want := range map[string]string{"-2": "0", "-4": "0", "-9223372036854775808": "0", "1": "0", "7": "0", "9223372036854775807": "0", "0": "1", "x": "1"} {
+		updated = nil
+		rec := env.do(t, http.MethodPost, "/api/v1/actions/shuffle", testUserID, model.PostActionIntegrationRequest{
+			PostId: "previewpostidxxxxxxxxxxxxx", ChannelId: testChannelID,
+			Context: map[string]any{"kind": "gif", "query": "cat", "index": index},
+		})
+		require.Equal(t, http.StatusOK, rec.Code, "index %s: %s", index, rec.Body.String())
+		require.NotNil(t, updated, "index %s", index)
+		_, ctx := previewOf(t, updated)
+		assert.Equal(t, want, ctx["index"], "index %s", index)
+	}
+}
+
+func TestNextIndex(t *testing.T) {
+	assert.Equal(t, 1, nextIndex(0, 3))
+	assert.Equal(t, 2, nextIndex(1, 3))
+	assert.Equal(t, 0, nextIndex(2, 3))
+	assert.Equal(t, 0, nextIndex(0, 1))
+	assert.Equal(t, 0, nextIndex(-1, 3))
+	assert.Equal(t, 0, nextIndex(3, 3))
+}
+
+// A handler that panics answers 500 and leaves the plugin running.
+func TestRouterRecoversPanics(t *testing.T) {
+	env := newTestEnv(t, nil)
+	env.p.router.HandleFunc("/panic", func(http.ResponseWriter, *http.Request) { panic("boom") })
+	rec := env.do(t, http.MethodGet, "/panic", testUserID, nil)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	env.api.AssertCalled(t, "LogError", "A GIFs request panicked", "path", "/panic", "panic", "boom", "stack", mock.Anything)
+	assert.Equal(t, http.StatusInternalServerError, env.do(t, http.MethodGet, "/panic", testUserID, nil).Code)
+}

@@ -119,6 +119,15 @@ func previewContextFrom(m map[string]any) previewContext {
 	return previewContext{Kind: str("kind"), Query: str("query"), Index: index, RootID: str("root_id"), ID: str("id")}
 }
 
+// nextIndex is the result Shuffle shows after the one at index, among n > 0 results. The index
+// comes from the button's context, which anyone can send: one out of range starts over at the first.
+func nextIndex(index, n int) int {
+	if index < 0 || index >= n-1 {
+		return 0
+	}
+	return index + 1
+}
+
 // previewPost is the ephemeral post showing a result with Send, Shuffle and Cancel buttons.
 func (p *Plugin) previewPost(postID, userID, channelID string, c previewContext, it *Item) *model.Post {
 	c.ID = it.ID
@@ -198,7 +207,7 @@ func (p *Plugin) handleAction(w http.ResponseWriter, r *http.Request) {
 			respond("The search failed, try again later.")
 			return
 		}
-		c.Index = (c.Index + 1) % len(page.Items)
+		c.Index = nextIndex(c.Index, len(page.Items))
 		p.API.UpdateEphemeralPost(userID, p.previewPost(req.PostId, userID, req.ChannelId, c, &page.Items[c.Index]))
 		respond("")
 	case "send":

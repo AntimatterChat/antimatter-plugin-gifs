@@ -6,7 +6,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -39,7 +41,7 @@ func (p *Plugin) newRouter() *mux.Router {
 	router := mux.NewRouter()
 	// The media proxy rejects unclean paths itself rather than redirecting them.
 	router.SkipClean(true)
-	router.Use(p.requireUser)
+	router.Use(p.recoverPanics, p.requireUser)
 
 	router.PathPrefix("/media/").HandlerFunc(p.handleMedia).Methods(http.MethodGet, http.MethodHead)
 
@@ -62,6 +64,22 @@ func (p *Plugin) newRouter() *mux.Router {
 	api.HandleFunc("/actions/{action:send|shuffle|cancel}", p.handleAction).Methods(http.MethodPost)
 
 	return router
+}
+
+// recoverPanics answers 500 to a request whose handler panicked, instead of letting the panic
+// end the plugin's process (and the server disable the plugin for everyone).
+func (p *Plugin) recoverPanics(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if v := recover(); v != nil {
+				if err, ok := v.(error); !ok || !errors.Is(err, http.ErrAbortHandler) {
+					p.API.LogError("A GIFs request panicked", "path", r.URL.Path, "panic", fmt.Sprint(v), "stack", string(debug.Stack()))
+				}
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (p *Plugin) requireUser(next http.Handler) http.Handler {
