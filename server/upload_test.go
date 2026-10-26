@@ -91,7 +91,7 @@ func TestUpload(t *testing.T) {
 	// The service got the fields, the file and the upload key.
 	up := env.service.lastUpload()
 	assert.Equal(t, "Bearer up-secret", up.auth)
-	assert.Equal(t, map[string]string{"kind": "sticker", "title": "Dance", "tags": "dance, party", "pack": "Moves"}, up.fields)
+	assert.Equal(t, map[string]string{"kind": "sticker", "title": "Dance", "tags": "dance, party", "pack": "Moves", "uploader": uploaderID(testUserID)}, up.fields)
 	assert.Equal(t, "GIF89a...", up.file)
 	assert.Equal(t, "dance.gif", up.fileName)
 
@@ -104,7 +104,7 @@ func TestUpload(t *testing.T) {
 
 	// GIFs don't go in packs.
 	require.Equal(t, http.StatusOK, env.doUpload(t, map[string]string{"title": "Dance", "pack": "Moves"}, []byte("GIF89a")).Code)
-	assert.Equal(t, map[string]string{"kind": "gif", "title": "Dance"}, env.service.lastUpload().fields)
+	assert.Equal(t, map[string]string{"kind": "gif", "title": "Dance", "uploader": uploaderID(testUserID)}, env.service.lastUpload().fields)
 }
 
 func TestUploadErrors(t *testing.T) {
