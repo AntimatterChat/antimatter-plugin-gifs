@@ -142,6 +142,8 @@ type gifService struct {
 	cache         *cache
 	// searched remembers what each user searched lately and found (rememberSearch).
 	searched *cache
+	// media downloads the media files the proxy serves.
+	media *mediaFetcher
 }
 
 func newGIFService(c *configuration, client *http.Client) *gifService {
@@ -156,6 +158,7 @@ func newGIFService(c *configuration, client *http.Client) *gifService {
 		http:          client,
 		cache:         newCache(c.cacheBytes()),
 		searched:      newCache(searchMemoryBytes),
+		media:         newMediaFetcher(maxConcurrentMediaFetches),
 	}
 }
 
