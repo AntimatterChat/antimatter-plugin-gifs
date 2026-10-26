@@ -218,7 +218,7 @@ func (p *Plugin) handleUpload(w http.ResponseWriter, r *http.Request) {
 		p.writeError(w, err)
 		return
 	}
-	up := UploadRequest{Kind: kind}
+	up := UploadRequest{Kind: kind, Uploader: uploaderID(userID)}
 	for _, f := range []struct {
 		into   *string
 		name   string

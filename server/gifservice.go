@@ -5,6 +5,8 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -355,9 +357,19 @@ type UploadRequest struct {
 	// Tags are comma-separated.
 	Tags string
 	// Pack is the sticker pack to add a sticker to.
-	Pack     string
+	Pack string
+	// Uploader is an opaque ID of the user (uploaderID), for the service to tell the same file
+	// uploaded again by them from one uploaded by someone else.
+	Uploader string
 	FileName string
 	File     io.Reader
+}
+
+// uploaderID is the ID of a user the GIF service knows uploads by: a hash, so that the service
+// never sees user IDs.
+func uploaderID(userID string) string {
+	sum := sha256.Sum256([]byte("antimatter-gifs-uploader\x00" + userID))
+	return hex.EncodeToString(sum[:16])
 }
 
 // Upload adds a GIF or sticker to the service, which converts it, and returns its item. The
@@ -370,7 +382,7 @@ func (s *gifService) Upload(ctx context.Context, up UploadRequest) (*Item, error
 	mw := multipart.NewWriter(w)
 	go func() {
 		err := func() error {
-			for _, f := range [][2]string{{"kind", up.Kind}, {"title", up.Title}, {"tags", up.Tags}, {"pack", up.Pack}} {
+			for _, f := range [][2]string{{"kind", up.Kind}, {"title", up.Title}, {"tags", up.Tags}, {"pack", up.Pack}, {"uploader", up.Uploader}} {
 				if f[1] == "" {
 					continue
 				}

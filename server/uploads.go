@@ -94,12 +94,43 @@ func (s *Store) updateUploads(kind string, change func([]Upload) []Upload) error
 	return errTooManyUpdates
 }
 
+// otherKind is sticker for gif and gif for sticker.
+func otherKind(kind string) string {
+	if kind == kindSticker {
+		return kindGIF
+	}
+	return kindSticker
+}
+
+// findUpload returns the record of an upload of a kind, nil when there's none.
+func findUpload(uploads []Upload, id string) *Upload {
+	for i := range uploads {
+		if uploads[i].ID == id {
+			return &uploads[i]
+		}
+	}
+	return nil
+}
+
 // AddUpload records an upload and keeps a snapshot of its item. The same file uploaded again (the
 // service gives it the same ID) keeps its first uploader and date, with the new title and tags.
+// That holds across kinds: GIF services before uploads were told apart by kind gave the same ID to
+// the same file uploaded as the other kind (and made it that kind), and recording the second
+// uploader as its owner let them delete the first one's upload. The record moves to the new kind.
 func (s *Store) AddUpload(up Upload, it Item) error {
 	data, err := json.Marshal(it)
 	if err != nil {
 		return err
+	}
+	other, err := s.Uploads(otherKind(up.Kind))
+	if err != nil {
+		return err
+	}
+	if first := findUpload(other, up.ID); first != nil {
+		if err := s.RemoveUpload(otherKind(up.Kind), first.ID); err != nil {
+			return err
+		}
+		up.UserID, up.CreatedAt = first.UserID, first.CreatedAt
 	}
 	if _, appErr := s.api.KVSetWithOptions(uploadItemKey(up.Kind, up.ID), data, model.PluginKVSetOptions{}); appErr != nil {
 		return appErr
@@ -296,18 +327,20 @@ func (p *Plugin) handleDeleteUpload(w http.ResponseWriter, r *http.Request) {
 		p.writeError(w, err)
 		return
 	}
-	var found *Upload
-	for i := range uploads {
-		if uploads[i].ID == id {
-			found = &uploads[i]
-			break
-		}
-	}
+	found := findUpload(uploads, id)
 	if found == nil {
 		p.writeError(w, newAPIError(http.StatusNotFound, "no such upload"))
 		return
 	}
-	if !p.canDeleteUpload(userID, *found) {
+	// The service has one item per ID, whatever its kind: a record of the other kind (from a GIF
+	// service that gave the same file uploaded as the other kind the same ID) may be someone else's.
+	others, err := p.store.Uploads(otherKind(kind))
+	if err != nil {
+		p.writeError(w, err)
+		return
+	}
+	twin := findUpload(others, id)
+	if !p.canDeleteUpload(userID, *found) || twin != nil && !p.canDeleteUpload(userID, *twin) {
 		p.writeError(w, newAPIError(http.StatusForbidden, "you can't delete this upload"))
 		return
 	}
@@ -318,6 +351,12 @@ func (p *Plugin) handleDeleteUpload(w http.ResponseWriter, r *http.Request) {
 	if err := p.store.RemoveUpload(kind, id); err != nil {
 		p.writeError(w, err)
 		return
+	}
+	if twin != nil {
+		if err := p.store.RemoveUpload(otherKind(kind), id); err != nil {
+			p.writeError(w, err)
+			return
+		}
 	}
 	if _, err := p.store.RemoveFavorite(userID, kind, id); err != nil {
 		p.API.LogWarn("Failed to remove a deleted upload from the favourites", "err", err.Error())

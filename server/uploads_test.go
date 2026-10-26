@@ -239,3 +239,57 @@ func TestAddUploadKeepsAtMostMaxUploads(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, item)
 }
+
+// A GIF service that told uploads apart by the file alone gave the same file uploaded as the other
+// kind the same ID (the fake service does with the "id:" tags): the second uploader was recorded as
+// the owner of a sticker with the ID of the first one's GIF, and could delete it.
+func TestDeleteUploadOtherKindNotOwner(t *testing.T) {
+	env := newTestEnv(t, withUploads("everyone")).withPeople()
+	require.Equal(t, http.StatusOK, env.doUploadAs(t, testUserID, map[string]string{"title": "Cat"}, []byte("GIF89a")).Code) // up1
+	require.Equal(t, http.StatusOK, env.doUploadAs(t, otherUserID, map[string]string{"kind": kindSticker, "title": "Mine now", "tags": "id:up1"}, []byte("GIF89a")).Code)
+
+	// The record moved to the kind the service now gives it, with its first uploader.
+	assert.Empty(t, ids(env.listUploads(t, testUserID, "kind=gif")))
+	stickers := env.listUploads(t, otherUserID, "kind=sticker")
+	require.Equal(t, []string{"up1"}, ids(stickers))
+	assert.Equal(t, testUserID, stickers.Uploads[0].UserID)
+	assert.False(t, stickers.Uploads[0].CanDelete)
+
+	assert.Equal(t, http.StatusForbidden, env.do(t, http.MethodDelete, "/api/v1/uploads/sticker/up1", otherUserID, nil).Code)
+	assert.Equal(t, http.StatusNotFound, env.do(t, http.MethodDelete, "/api/v1/uploads/gif/up1", otherUserID, nil).Code)
+	assert.Empty(t, env.service.deletedIDs())
+	assert.Equal(t, http.StatusNoContent, env.do(t, http.MethodDelete, "/api/v1/uploads/sticker/up1", testUserID, nil).Code)
+	assert.Equal(t, []string{"up1"}, env.service.deletedIDs())
+}
+
+// Records of both kinds for one ID, from before the fix: deleting needs the right to delete both.
+func TestDeleteUploadChecksOwnersOfBothKinds(t *testing.T) {
+	env := newTestEnv(t, withUploads("everyone")).withPeople()
+	for kind, user := range map[string]string{kindGIF: testUserID, kindSticker: otherUserID} {
+		require.NoError(t, env.p.store.updateUploads(kind, func(uploads []Upload) []Upload {
+			return append(uploads, Upload{ID: "twin", Kind: kind, Title: "Cat", UserID: user, CreatedAt: 1})
+		}))
+	}
+	assert.Equal(t, http.StatusForbidden, env.do(t, http.MethodDelete, "/api/v1/uploads/sticker/twin", otherUserID, nil).Code)
+	assert.Equal(t, http.StatusForbidden, env.do(t, http.MethodDelete, "/api/v1/uploads/gif/twin", testUserID, nil).Code)
+	assert.Empty(t, env.service.deletedIDs())
+
+	// An admin may: both records go.
+	assert.Equal(t, http.StatusNoContent, env.do(t, http.MethodDelete, "/api/v1/uploads/sticker/twin", adminUserID, nil).Code)
+	assert.Empty(t, ids(env.listUploads(t, testUserID, "kind=gif")))
+	assert.Empty(t, ids(env.listUploads(t, testUserID, "kind=sticker")))
+}
+
+// The service tells the same file uploaded by someone else by an opaque uploader ID, never the
+// user's ID.
+func TestUploadSendsOpaqueUploader(t *testing.T) {
+	env := newTestEnv(t, withUploads("everyone")).withPeople()
+	require.Equal(t, http.StatusOK, env.doUploadAs(t, testUserID, map[string]string{"title": "Cat"}, []byte("GIF89a")).Code)
+	mine := env.service.lastUpload().fields["uploader"]
+	require.Equal(t, http.StatusOK, env.doUploadAs(t, otherUserID, map[string]string{"title": "Cat"}, []byte("GIF89a")).Code)
+	theirs := env.service.lastUpload().fields["uploader"]
+	assert.Equal(t, uploaderID(testUserID), mine)
+	assert.Len(t, mine, 32)
+	assert.NotEqual(t, mine, theirs)
+	assert.NotContains(t, mine, testUserID)
+}
