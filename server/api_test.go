@@ -172,6 +172,7 @@ func TestPost(t *testing.T) {
 		return created, nil
 	})
 
+	require.Equal(t, http.StatusOK, env.do(t, http.MethodGet, "/api/v1/search?q=cat", testUserID, nil).Code)
 	rec := env.do(t, http.MethodPost, "/api/v1/post", testUserID, postRequest{
 		itemRequest: itemRequest{Kind: kindGIF, ID: "g1"}, ChannelID: testChannelID, RootID: testRootID, Query: "cat",
 	})

@@ -85,6 +85,7 @@ func (p *Plugin) postItem(userID, channelID, rootID string, it *Item, query stri
 		p.API.LogWarn("Failed to save a recently used GIF", "err", err.Error())
 	}
 	if s := p.getService(); s.configured() {
+		query = s.shareQuery(userID, it.Kind, query, it.ID)
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()

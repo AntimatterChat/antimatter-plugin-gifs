@@ -14,8 +14,10 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // Kinds of items.
@@ -138,6 +140,8 @@ type gifService struct {
 	uploadKey     string
 	http          *http.Client
 	cache         *cache
+	// searched remembers what each user searched lately and found (rememberSearch).
+	searched *cache
 }
 
 func newGIFService(c *configuration, client *http.Client) *gifService {
@@ -151,7 +155,65 @@ func newGIFService(c *configuration, client *http.Client) *gifService {
 		uploadKey:     strings.TrimSpace(c.UploadKey),
 		http:          client,
 		cache:         newCache(c.cacheBytes()),
+		searched:      newCache(searchMemoryBytes),
 	}
+}
+
+// A share tells the GIF service the search that found the item, for its trending terms. The query
+// of a post comes from the client, which can send any: it goes with the share only when the user
+// did search it, here, and found the item. (On a cluster, a search and its post may reach
+// different nodes: the share then goes without its query.)
+const (
+	// searchMemoryBytes bounds the searches remembered, for all users: some 20 bytes per item found
+	// (plus some 200 bytes of bookkeeping per search, which the cache doesn't count).
+	searchMemoryBytes = 2 << 20
+	// searchMemoryTTL is how long a search is remembered.
+	searchMemoryTTL = time.Hour
+	// maxRememberedItems is how many items found are remembered for each search (its pages).
+	maxRememberedItems = 200
+	// maxShareQueryRunes bounds the query of a share, as the searches are bounded.
+	maxShareQueryRunes = 100
+)
+
+// searchMemoryKey is the key of a search in the memory: a hash, of a fixed size.
+func searchMemoryKey(userID, kind, query string) string {
+	sum := sha256.Sum256([]byte(userID + "\x00" + kind + "\x00" + strings.ToLower(strings.Join(strings.Fields(query), " "))))
+	return string(sum[:])
+}
+
+// rememberSearch remembers that a user searched a query and found items.
+func (s *gifService) rememberSearch(userID, kind, query string, items []Item) {
+	if s == nil || s.searched == nil || userID == "" || len(items) == 0 {
+		return
+	}
+	key := searchMemoryKey(userID, kind, query)
+	var ids []string
+	if e, ok := s.searched.get(key); ok {
+		ids = strings.Split(string(e.body), "\n")
+	}
+	for _, it := range items {
+		if it.ID != "" && !slices.Contains(ids, it.ID) {
+			ids = append(ids, it.ID)
+		}
+	}
+	if len(ids) > maxRememberedItems {
+		ids = ids[len(ids)-maxRememberedItems:]
+	}
+	s.searched.set(key, []byte(strings.Join(ids, "\n")), "", searchMemoryTTL)
+}
+
+// shareQuery is the query to send with the share of an item: the one of the post when the user
+// searched it and found the item, else none.
+func (s *gifService) shareQuery(userID, kind, query, id string) string {
+	query = strings.TrimSpace(query)
+	if s == nil || s.searched == nil || query == "" || utf8.RuneCountInString(query) > maxShareQueryRunes {
+		return ""
+	}
+	e, ok := s.searched.get(searchMemoryKey(userID, kind, query))
+	if !ok || !slices.Contains(strings.Split(string(e.body), "\n"), id) {
+		return ""
+	}
+	return query
 }
 
 func (s *gifService) configured() bool {

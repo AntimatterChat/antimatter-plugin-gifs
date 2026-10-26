@@ -92,6 +92,7 @@ func (p *Plugin) ExecuteCommand(_ *plugin.Context, args *model.CommandArgs) (*mo
 	if len(page.Items) == 0 {
 		return ephemeralResponse(fmt.Sprintf("No %s found for “%s”.", noun, query)), nil
 	}
+	p.getService().rememberSearch(args.UserId, kind, query, page.Items)
 	preview := previewContext{Kind: kind, Query: query, RootID: args.RootId}
 	p.API.SendEphemeralPost(args.UserId, p.previewPost(model.NewId(), args.UserId, args.ChannelId, preview, &page.Items[0]))
 	return &model.CommandResponse{}, nil
@@ -207,6 +208,7 @@ func (p *Plugin) handleAction(w http.ResponseWriter, r *http.Request) {
 			respond("The search failed, try again later.")
 			return
 		}
+		p.getService().rememberSearch(userID, c.Kind, c.Query, page.Items)
 		c.Index = nextIndex(c.Index, len(page.Items))
 		p.API.UpdateEphemeralPost(userID, p.previewPost(req.PostId, userID, req.ChannelId, c, &page.Items[c.Index]))
 		respond("")

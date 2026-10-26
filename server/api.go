@@ -283,6 +283,7 @@ func (p *Plugin) handleSearch(w http.ResponseWriter, r *http.Request) {
 		p.writeError(w, err)
 		return
 	}
+	p.getService().rememberSearch(r.Header.Get("Mattermost-User-Id"), kind, query, page.Items)
 	p.writeJSON(w, page)
 }
 
