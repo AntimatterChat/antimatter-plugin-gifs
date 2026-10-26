@@ -33,6 +33,9 @@ type ClientConfig struct {
 	CanDeleteOthers bool `json:"can_delete_others"`
 	// UploadMaxBytes is the largest file an upload takes, when uploads are possible.
 	UploadMaxBytes int64 `json:"upload_max_bytes,omitempty"`
+	// MediaProxied tells whether the plugin serves the media: the clients then load the media of
+	// posts from the plugin only, not from the URLs of a forged post's props.
+	MediaProxied bool `json:"media_proxied"`
 }
 
 // newRouter returns the router of the plugin's REST API, served under
@@ -145,9 +148,10 @@ func (p *Plugin) handleGetConfig(w http.ResponseWriter, r *http.Request) {
 	c := p.getConfiguration()
 	userID := r.Header.Get("Mattermost-User-Id")
 	cfg := ClientConfig{
-		Configured: c.serviceBase() != "",
-		Stickers:   c.EnableStickers,
-		CanUpload:  p.canUpload(userID),
+		Configured:   c.serviceBase() != "",
+		Stickers:     c.EnableStickers,
+		CanUpload:    p.canUpload(userID),
+		MediaProxied: c.ProxyMedia && c.mediaBase() != "",
 	}
 	if p.getService().canUpload() {
 		cfg.CanDeleteOthers = p.isAdmin(userID)

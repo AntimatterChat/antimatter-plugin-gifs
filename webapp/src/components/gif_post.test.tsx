@@ -1,18 +1,19 @@
 // Copyright (c) 2026-present Antimatter contributors.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
+import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
 
 import {makeGif, makeSticker, renderWithProviders} from '../../tests/utils';
 import * as client from '../client';
-import {resetFavorites} from '../state';
+import {resetConfig, resetFavorites} from '../state';
 
 import GifPost, {parseItem} from './gif_post';
 
 jest.mock('../client', () => ({
+    getConfig: jest.fn(() => Promise.resolve({configured: true, stickers: true, media_proxied: true})),
     getFavorites: jest.fn(() => Promise.resolve([])),
     addFavorite: jest.fn(() => Promise.resolve([])),
     removeFavorite: jest.fn(() => Promise.resolve([])),
@@ -25,6 +26,7 @@ function makePost(item: unknown): Post {
 describe('GifPost', () => {
     beforeEach(() => {
         resetFavorites();
+        resetConfig();
         delete window.antimatterWebUI;
         (client.getFavorites as jest.Mock).mockResolvedValue([]);
     });
@@ -80,11 +82,30 @@ describe('GifPost', () => {
         renderWithProviders(<GifPost post={makePost({id: 'x', kind: 'gif', post: {url: scriptURL}})}/>);
         expect(screen.getByText('![Happy cat](https://chat.example.com/x.gif)')).toBeInTheDocument();
     });
+
+    test('loads no media from elsewhere while the plugin serves them', async () => {
+        const forged = {...makeGif('g1'), post: {url: 'https://evil.example.com/x.mp4', width: 320, height: 180, video: true}};
+        const {container} = renderWithProviders(<GifPost post={makePost(forged)}/>);
+        await waitFor(() => expect(client.getConfig).toHaveBeenCalled());
+        await act(async () => {
+            await Promise.resolve();
+        });
+        expect(screen.getByText('![Happy cat](https://chat.example.com/x.gif)')).toBeInTheDocument();
+        expect(container.querySelector('video, img')).toBeNull();
+    });
+
+    test('loads the service\'s media when the plugin doesn\'t serve them', async () => {
+        (client.getConfig as jest.Mock).mockResolvedValueOnce({configured: true, stickers: true, media_proxied: false});
+        const remote = {...makeGif('g1'), post: {url: 'https://media.tenor.com/x.mp4', width: 320, height: 180, video: true}};
+        const {container} = renderWithProviders(<GifPost post={makePost(remote)}/>);
+        await waitFor(() => expect(container.querySelector('video')).toHaveAttribute('src', 'https://media.tenor.com/x.mp4'));
+    });
 });
 
 test('parseItem checks the props', () => {
     expect(parseItem(null)).toBeNull();
     expect(parseItem({id: 'x', kind: 'video', post: {url: '/plugins/com.antimatterchat.gifs/media/x.gif'}})).toBeNull();
-    const item = parseItem({id: 'x', kind: 'gif', post: {url: 'https://media.tenor.com/x.gif'}, image: 'bad'});
+    const item = parseItem({id: 'x', kind: 'gif', post: {url: 'https://media.tenor.com/x.gif'}, image: 'bad'}, true);
     expect(item).toEqual({id: 'x', kind: 'gif', post: {url: 'https://media.tenor.com/x.gif'}, preview: {url: 'https://media.tenor.com/x.gif'}});
+    expect(parseItem({id: 'x', kind: 'gif', post: {url: 'https://media.tenor.com/x.gif'}})).toBeNull();
 });

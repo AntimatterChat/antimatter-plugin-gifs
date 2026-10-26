@@ -3,8 +3,9 @@
 
 import React, {useEffect, useRef, useState} from 'react';
 
+import {useClientConfig} from '../state';
 import type {Media} from '../types/gifs';
-import {mediaSrc} from '../urls';
+import {mediaSrc, remoteMediaAllowed} from '../urls';
 
 function prefersReducedMotion() {
     return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -70,8 +71,9 @@ type Props = {
 // reduced motion.
 export default function MediaView({media, still, label, className}: Props) {
     const reduced = usePrefersReducedMotion();
-    const src = mediaSrc(media.url);
-    const stillSrc = mediaSrc(still?.url);
+    const allowRemote = remoteMediaAllowed(useClientConfig());
+    const src = mediaSrc(media.url, allowRemote);
+    const stillSrc = mediaSrc(still?.url, allowRemote);
     if (!src) {
         return null;
     }

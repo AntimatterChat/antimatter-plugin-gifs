@@ -7,9 +7,9 @@ import {useIntl} from 'react-intl';
 import type {Post} from '@mattermost/types/posts';
 
 import {messages} from '../messages';
-import {isFavorite, loadFavorites, toggleFavorite, useFavorites} from '../state';
+import {ensureConfig, isFavorite, loadFavorites, toggleFavorite, useClientConfig, useFavorites} from '../state';
 import type {Item, Media} from '../types/gifs';
-import {mediaSrc, safeLink} from '../urls';
+import {mediaSrc, remoteMediaAllowed, safeLink} from '../urls';
 import {classNames, isFusionUI} from '../web_ui';
 
 import {iconTip, tip} from './fusion/tip';
@@ -26,13 +26,14 @@ function isMedia(m: unknown): m is Media {
     return Boolean(m) && typeof (m as Media).url === 'string';
 }
 
-// parseItem checks the item of a post's props.
-export function parseItem(value: unknown): Item | null {
+// parseItem checks the item of a post's props; its media may be the GIF service's URLs only when
+// allowRemote (the plugin doesn't serve the media).
+export function parseItem(value: unknown, allowRemote = false): Item | null {
     const it = value as Item;
     if (!it || typeof it !== 'object' || typeof it.id !== 'string' || (it.kind !== 'gif' && it.kind !== 'sticker')) {
         return null;
     }
-    if (!isMedia(it.post) || !mediaSrc(it.post.url)) {
+    if (!isMedia(it.post) || !mediaSrc(it.post.url, allowRemote)) {
         return null;
     }
     const item: Item = {...it, preview: isMedia(it.preview) ? it.preview : it.post};
@@ -51,10 +52,12 @@ export default function GifPost({post}: {post: Post}) {
     const fusion = isFusionUI();
     const k = classNames(fusion);
     const favorites = useFavorites();
-    const item = parseItem(post.props?.[POST_PROP]);
+    const config = useClientConfig();
+    const item = parseItem(post.props?.[POST_PROP], remoteMediaAllowed(config));
 
     useEffect(() => {
         loadFavorites();
+        ensureConfig();
     }, []);
 
     if (!item) {

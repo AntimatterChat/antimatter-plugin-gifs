@@ -48,6 +48,9 @@ export type ClientConfig = {
 
     // The largest file an upload takes.
     upload_max_bytes?: number;
+
+    // Whether the plugin serves the media: media then load from it only.
+    media_proxied?: boolean;
 };
 
 // A GIF or sticker someone added, as GET /api/v1/uploads lists it.

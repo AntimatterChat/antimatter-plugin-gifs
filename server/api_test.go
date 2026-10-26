@@ -111,7 +111,9 @@ func TestErrors(t *testing.T) {
 	}
 
 	cfg := decode[ClientConfig](t, env.do(t, http.MethodGet, "/api/v1/config", testUserID, nil))
-	assert.Equal(t, ClientConfig{Configured: true, Stickers: false}, cfg)
+	assert.Equal(t, ClientConfig{Configured: true, Stickers: false, MediaProxied: true}, cfg)
+	env.p.getConfiguration().ProxyMedia = false
+	assert.False(t, decode[ClientConfig](t, env.do(t, http.MethodGet, "/api/v1/config", testUserID, nil)).MediaProxied)
 
 	// A wrong key: the service's message, never the key.
 	env = newTestEnv(t, func(c *configuration) { c.APIKey = "wrong" })

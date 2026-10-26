@@ -97,6 +97,29 @@ export async function loadConfig() {
     }
 }
 
+// ensureConfig loads the configuration once, for the posts: they need to know where their media
+// may load from. It tries again after a failure.
+let configLoading: Promise<void> | null = null;
+
+export function ensureConfig() {
+    if (config.get()) {
+        return Promise.resolve();
+    }
+    if (!configLoading) {
+        configLoading = loadConfig().then(() => {
+            if (!config.get()) {
+                configLoading = null;
+            }
+        });
+    }
+    return configLoading;
+}
+
+export function resetConfig() {
+    config.set(null);
+    configLoading = null;
+}
+
 export function getClientConfig() {
     return config.get();
 }
