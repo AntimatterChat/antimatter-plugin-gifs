@@ -255,7 +255,7 @@ func (s *gifService) get(ctx context.Context, endpoint string, params url.Values
 		}
 		return newAPIError(http.StatusBadGateway, "the GIF service can't be reached: "+err.Error())
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 	if err != nil {
 		return newAPIError(http.StatusBadGateway, "reading the GIF service's response: "+err.Error())
@@ -472,7 +472,7 @@ func (s *gifService) Upload(ctx context.Context, up UploadRequest) (*Item, error
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.base+"/upload", body)
 	if err != nil {
-		body.Close()
+		_ = body.Close()
 		return nil, err
 	}
 	req.Header.Set("Content-Type", mw.FormDataContentType())
@@ -488,7 +488,7 @@ func (s *gifService) Upload(ctx context.Context, up UploadRequest) (*Item, error
 		}
 		return nil, newAPIError(http.StatusBadGateway, "the GIF service can't be reached: "+err.Error())
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	data, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 	if err != nil {
 		return nil, newAPIError(http.StatusBadGateway, "reading the GIF service's response: "+err.Error())
@@ -548,7 +548,7 @@ func (s *gifService) RegisterShare(ctx context.Context, id, query string) error 
 	if err != nil {
 		return fmt.Errorf("registershare failed")
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("registershare: %s", resp.Status)
 	}
@@ -644,7 +644,7 @@ func (s *gifService) DeleteUpload(ctx context.Context, id string) error {
 		}
 		return newAPIError(http.StatusBadGateway, "the GIF service can't be reached: "+err.Error())
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	data, _ := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
 	switch resp.StatusCode {
 	case http.StatusOK, http.StatusNoContent, http.StatusNotFound:

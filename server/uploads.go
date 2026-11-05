@@ -127,7 +127,7 @@ func (s *Store) AddUpload(up Upload, it Item) error {
 		return err
 	}
 	if first := findUpload(other, up.ID); first != nil {
-		if err := s.RemoveUpload(otherKind(up.Kind), first.ID); err != nil {
+		if err = s.RemoveUpload(otherKind(up.Kind), first.ID); err != nil {
 			return err
 		}
 		up.UserID, up.CreatedAt = first.UserID, first.CreatedAt
