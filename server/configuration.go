@@ -44,7 +44,7 @@ type configuration struct {
 // System Console, e.g. from a docker-compose file. Plugins inherit the server's environment.
 const (
 	envServiceURL = "AM_GIFS_SERVICE_URL"
-	envAPIKey     = "AM_GIFS_API_KEY"
+	envAPIKey     = "AM_GIFS_API_KEY" //nolint:gosec // the variable's name, not a key
 	envUploadKey  = "AM_GIFS_UPLOAD_KEY"
 )
 

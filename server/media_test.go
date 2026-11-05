@@ -40,7 +40,7 @@ func TestHandleMediaLimitsConcurrentFetches(t *testing.T) {
 		mu.Unlock()
 		<-release
 		w.Header().Set("Content-Type", "image/gif")
-		fmt.Fprint(w, "GIF:"+r.URL.Path)
+		_, _ = fmt.Fprint(w, "GIF:"+r.URL.Path)
 	}))
 	defer media.Close()
 	env := newTestEnv(t, func(c *configuration) { c.MediaURL = media.URL + "/media/" })
@@ -56,15 +56,13 @@ func TestHandleMediaLimitsConcurrentFetches(t *testing.T) {
 	bodies := make([]string, len(paths))
 	var wg sync.WaitGroup
 	for i, p := range paths {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			req := httptest.NewRequest(http.MethodGet, p, nil)
 			req.Header.Set("Mattermost-User-Id", testUserID)
 			rec := httptest.NewRecorder()
 			env.p.ServeHTTP(nil, rec, req)
 			codes[i], bodies[i] = rec.Code, rec.Body.String()
-		}()
+		})
 	}
 
 	require.Eventually(t, func() bool { return inFlight.Load() == maxConcurrentMediaFetches }, 5*time.Second, 5*time.Millisecond)

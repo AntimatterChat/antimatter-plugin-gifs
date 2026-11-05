@@ -143,7 +143,7 @@ func (p *Plugin) fetchMedia(ctx context.Context, s *gifService, rel string) (*ca
 		p.API.LogWarn("Failed to fetch a media file from the GIF service", "path", rel, "err", err.Error())
 		return nil, http.StatusBadGateway
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, http.StatusNotFound
 	}

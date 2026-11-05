@@ -245,7 +245,7 @@ func (p *Plugin) handleUpload(w http.ResponseWriter, r *http.Request) {
 		p.writeError(w, newAPIError(http.StatusBadRequest, "a file is required"))
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	if header.Size > uploadMaxSizeBytes {
 		p.writeError(w, newAPIError(http.StatusRequestEntityTooLarge, "the file is larger than 16 MB"))
 		return

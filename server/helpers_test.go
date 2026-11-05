@@ -78,7 +78,7 @@ type fakeService struct {
 func (f *fakeService) deleteUpload(w http.ResponseWriter, r *http.Request, id string) {
 	if r.Header.Get("Authorization") != "Bearer up-secret" {
 		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprint(w, `{"error":{"code":403,"message":"The request is missing a valid upload key.","status":"PERMISSION_DENIED"}}`)
+		_, _ = fmt.Fprint(w, `{"error":{"code":403,"message":"The request is missing a valid upload key.","status":"PERMISSION_DENIED"}}`)
 		return
 	}
 	f.mu.Lock()
@@ -117,7 +117,7 @@ func (f *fakeService) upload(w http.ResponseWriter, r *http.Request, media func(
 	up := fakeUpload{auth: r.Header.Get("Authorization"), fields: map[string]string{}}
 	if up.auth != "Bearer up-secret" {
 		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprint(w, `{"error":{"code":403,"message":"The request is missing a valid upload key.","status":"PERMISSION_DENIED"}}`)
+		_, _ = fmt.Fprint(w, `{"error":{"code":403,"message":"The request is missing a valid upload key.","status":"PERMISSION_DENIED"}}`)
 		return
 	}
 	if err := r.ParseMultipartForm(1 << 20); err != nil {
@@ -140,7 +140,7 @@ func (f *fakeService) upload(w http.ResponseWriter, r *http.Request, media func(
 	}
 	if up.fields["title"] == "unconvertible" {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprint(w, `{"error":{"code":422,"message":"The file couldn't be converted: is it a valid image or video?","status":"INVALID_ARGUMENT"}}`)
+		_, _ = fmt.Fprint(w, `{"error":{"code":422,"message":"The file couldn't be converted: is it a valid image or video?","status":"INVALID_ARGUMENT"}}`)
 		return
 	}
 	res := map[string]any{"id": id, "title": up.fields["title"], "media_formats": map[string]any{
@@ -182,10 +182,10 @@ func newFakeService(t *testing.T) *fakeService {
 			switch {
 			case rest == "page.html":
 				w.Header().Set("Content-Type", "text/html")
-				fmt.Fprint(w, "<script>")
+				_, _ = fmt.Fprint(w, "<script>")
 			case strings.HasPrefix(rest, "g1/") || strings.HasPrefix(rest, "s1/"):
 				w.Header().Set("Content-Type", map[bool]string{true: "video/mp4", false: "image/gif"}[strings.HasSuffix(rest, ".mp4")])
-				fmt.Fprint(w, "MEDIA:"+rest)
+				_, _ = fmt.Fprint(w, "MEDIA:"+rest)
 			default:
 				http.NotFound(w, r)
 			}
@@ -202,7 +202,7 @@ func newFakeService(t *testing.T) *fakeService {
 		}
 		if q.Get("key") != "secret" || q.Get("client_key") != clientKey {
 			w.WriteHeader(http.StatusForbidden)
-			fmt.Fprint(w, `{"error":{"code":403,"message":"The request is missing a valid API key.","status":"PERMISSION_DENIED"}}`)
+			_, _ = fmt.Fprint(w, `{"error":{"code":403,"message":"The request is missing a valid API key.","status":"PERMISSION_DENIED"}}`)
 			return
 		}
 		sticker := q.Get("searchfilter") == "sticker"
@@ -219,7 +219,7 @@ func newFakeService(t *testing.T) *fakeService {
 			out = map[string]any{"results": list, "next": "2"}
 		case "/v2/posts":
 			var list []any
-			for _, id := range strings.Split(q.Get("ids"), ",") {
+			for id := range strings.SplitSeq(q.Get("ids"), ",") {
 				if res, ok := results[id]; ok {
 					list = append(list, res)
 				}
